@@ -1,0 +1,33 @@
+/* ============================================================================
+ * CombatSkills mod ― 战斗结束界面的「战利品」汇总面板
+ * 只作用于本 mod 注入的 #combatLootSummary，全部样式选择器都带这个 id 前缀，
+ * 不会影响游戏原有界面。颜色沿用游戏自身的 CSS 变量（--gold / --lblue 等）。
+ * ==========================================================================*/
+
+#combatLootSummary {
+	border: 1px solid var(--300);
+	background: var(--900);
+	border-radius: 3px;
+	padding: 0.5em 0.75em;
+	margin: 0.75em 0;
+	max-width: 44em;
+}
+
+#combatLootSummary > .gold {
+	display: block;
+	margin-bottom: 0.15em;
+}
+
+#combatLootSummary > .description {
+	margin: 0.15em 0;
+}
+
+#combatLootSummary .lootList {
+	margin: 0.25em 0 0.25em 1.5em;
+	padding: 0;
+}
+
+#combatLootSummary .lootList li {
+	line-height: 1.5em;
+	margin: 0;
+}

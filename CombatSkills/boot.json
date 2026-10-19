@@ -1,0 +1,148 @@
+{
+    "name":  "CombatSkills",
+    "version":  "1.12.1",
+    "styleFileList":  [
+                          "CombatSkills.css"
+                      ],
+    "scriptFileList_earlyload":  [
+
+                                 ],
+    "scriptFileList_inject_early":  [
+                                        "dist/CombatSkillsPatch.js"
+                                    ],
+    "scriptFileList_preload":  [
+
+                               ],
+    "scriptFileList":  [
+                           "dist/js/installCombatSkillsPatch.js"
+                       ],
+    "tweeFileList":  [
+                         "twee/CombatSkills.tw"
+                     ],
+    "imgFileList":  [
+
+                    ],
+    "imgFileReplaceList":  [
+
+                           ],
+    "additionFile":  [
+                         "README.md"
+                     ],
+    "addonPlugin":  [
+                        {
+                            "modName":  "TweeReplacer",
+                            "addonName":  "TweeReplacerAddon",
+                            "modVersion":  "^1.7.0",
+                            "params":  [
+                                           {
+                                               "passage":  "Characteristics",
+                                               "findString":  "\u003c\u003cif $prof.pickaxe isnot undefined\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _pickaxeConfig\u003e\u003e\n\t\t\t\u003c\u003celse\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _hiddenConfig\u003e\u003e\n\t\t\t\u003c\u003c/if\u003e\u003e*/\n\t\t\u003c/div\u003e\n\t\u003c/div\u003e",
+                                               "replace":  "\u003c\u003cif $prof.pickaxe isnot undefined\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _pickaxeConfig\u003e\u003e\n\t\t\t\u003c\u003celse\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _hiddenConfig\u003e\u003e\n\t\t\t\u003c\u003c/if\u003e\u003e*/\n\t\t\u003c/div\u003e\n\t\u003c/div\u003e\n\t\u003cbr\u003e\n\t\u003cspan class=\"gold\"\u003e战斗技能\u003c/span\u003e\n\t\u003cdiv id=\"combatSkills\" class=\"characteristic-box-list\"\u003e\n\t\t\u003c\u003ccombatStatBoxes\u003e\u003e\n\t\u003c/div\u003e\n",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets",
+                                               "findString":  "\u003c\u003cset _defiance to (_args[0] * (1 + ($sadism / 1000)))\u003e\u003e",
+                                               "replace":  "\u003c\u003cset _defiance to (_args[0] * (1 + ($sadism / 1000)))\u003e\u003e\u003c\u003ccombatStatAdd \"attack\" 1\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets",
+                                               "findString":  "\u003c\u003cwidget \"hitstat\"\u003e\u003e\u003c\u003cif $statFreeze isnot true\u003e\u003e\u003c\u003cset $hitstat += 1\u003e\u003e\u003c\u003c/if\u003e\u003e\u003c\u003c/widget\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"hitstat\"\u003e\u003e\u003c\u003cif $statFreeze isnot true\u003e\u003e\u003c\u003cset $hitstat += 1\u003e\u003e\u003c\u003c/if\u003e\u003e\u003c\u003ccombatStatAdd \"defense\" 1\u003e\u003e\u003c\u003ccombatStatAdd \"agility\" 1\u003e\u003e\u003c\u003c/widget\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Struggle",
+                                               "findString":  "\u003c!-- lurkers attacc --\u003e",
+                                               "replace":  "\u003c!-- lurkers attacc --\u003e\u003c\u003ccombatStatAdd \"defense\" 1\u003e\u003e\u003c\u003ccombatStatAdd \"agility\" 1\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Struggle",
+                                               "findString":  "\u003c\u003cset $dodging -= 1\u003e\u003e",
+                                               "replace":  "\u003c\u003cset $dodging -= 1\u003e\u003e\u003c\u003ccombatStatAdd \"agility\" 10\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets",
+                                               "findString":  "\u003c\u003cset _thedamage to (2 * _defiance * ($physique / 4000))\u003e\u003e",
+                                               "replace":  "\u003c\u003ccombatStatSync\u003e\u003e\u003c\u003cset _thedamage to (2 * _defiance * ($physique / 4000) * (1 + ($combatBonus.attack / 100)))\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets NPC Damage",
+                                               "findString":  "\u003cspan class=\"blue\"\u003e\u003c\u003ccombatPerson\u003e\u003e staggers back, defeated.\u003c/span\u003e",
+                                               "replace":  "\u003cspan class=\"blue\"\u003e\u003c\u003ccombatPerson\u003e\u003e staggers back, defeated.\u003c/span\u003e\u003c\u003ccombatLootDrop _i\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets End Combat",
+                                               "findString":  "\u003c\u003cwidget \"endcombat\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"endcombat\"\u003e\u003e\u003c\u003ccombatLootVictory\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets NPCs",
+                                               "findString":  "\u003c\u003cwidget \"combatinit\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"combatinit\"\u003e\u003e\u003c\u003ccombatLootClear\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Connudatus Street",
+                                               "findString":  "\u003c\u003cif $skulduggeryDintro is 1 and $exposed lte 0\u003e\u003e",
+                                               "replace":  "\u003c\u003cexerciseicon\u003e\u003e\u003c\u003clink [[拳击俱乐部|Boxing Club]]\u003e\u003e\u003c\u003c/link\u003e\u003e\n\t\t\t\u003cbr\u003e\n\t\t\t\u003c\u003cif $skulduggeryDintro is 1 and $exposed lte 0\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Pub",
+                                               "findString":  "\u003c\u003cif C.npc.Gwylan.state is \"scorned\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cexerciseicon\u003e\u003e\u003c\u003clink [[斗殴 (0:05)|Pub Brawl]]\u003e\u003e\u003c\u003cendevent\u003e\u003e\u003c\u003cpass 5\u003e\u003e\u003c\u003c/link\u003e\u003e\n\t\t\t\u003cbr\u003e\n\t\t\t\u003c\u003cif C.npc.Gwylan.state is \"scorned\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"leftActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _leftaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"leftActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _leftaction to {}\u003e\u003e\n\t\u003c\u003ccombatReversePinRegister \"left\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"rightActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _rightaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"rightActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _rightaction to {}\u003e\u003e\n\t\u003c\u003ccombatReversePinRegister \"right\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Effects Man",
+                                               "findString":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e\n\t\u003c\u003ccombatReversePin\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           }
+                                       ]
+                        }
+                    ],
+    "dependenceInfo":  [
+                           {
+                               "modName":  "ModLoader",
+                               "version":  "^2.60.1"
+                           },
+                           {
+                               "modName":  "TweeReplacer",
+                               "version":  "^1.7.0"
+                           }
+                       ]
+}

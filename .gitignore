@@ -1,0 +1,14 @@
+# 构建产物 / 本地文件（不纳入仓库）
+*.zip
+modList.json
+release/
+
+# 调试产物
+tools/save-decoded.json
+*.save
+*.html
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini

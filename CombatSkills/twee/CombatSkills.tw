@@ -1,0 +1,625 @@
+:: CombatSkills Widgets [widget]
+/* ============================================================================
+   CombatSkills mod v1.5.0  ―  战斗属性：攻击 / 防御 / 敏捷
+   ----------------------------------------------------------------------------
+   等级档位：F- / F / F+ / D- / D / D+ / C- / C / C+ / B- / B / B+ / A- / A / A+ / S
+             （共 16 档，0 ~ 1000；D- / C- / B- / A- / S 正好落在 200/400/600/800/1000）
+   每档加成：攻击力 +5 ／ 防御力 +5 ／ 敏捷 +5
+             （F- 为第 0 档，S 为第 15 档 → 满级累计 攻击力 +75、防御力 +75、敏捷 +75）
+
+   实际效果：
+     攻击力 → 每 1 点 +1% 造成伤害（乘进 defiance 的 _thedamage 公式）
+     防御力 → 每 1 点 -1% 受到伤害（包装 pain 宏，上限 -90%）
+     敏捷   → 直接计入 舞蹈 / 运动 / 游泳 / 足部 的技能判定
+              （包装 window.currentSkillValue，与游戏自身看舞蹈等技能的
+                事件判定方式一致；闪避判定也走 feetskill + danceskill，因此同样受益）
+
+   存档字段：
+     $combatSkills = { attack: 0~1000, defense: 0~1000, agility: 0~1000 }
+     $combatBonus  = { attack: +攻击力, defense: +防御力, agility: +敏捷 }
+                     （由档位换算；战斗公式与特征面板都会调用 combatStatSync）
+
+   战斗成长（由 build.ps1 写入 TweeReplacer 补丁实现）：
+     攻击敌人（<<defiance>> 结算）            → 攻击 +1 点
+     被攻击 / 被击中（<<hitstat>>、怪物扑袭） → 防御 +1 点、敏捷 +1 点
+     敏捷判定成功（struggle 的 $dodging 判定）→ 敏捷 +10 点
+
+   成长接口（供剧情 / 控制台 / 后续版本调用）：
+     <<combatStatAdd "attack" 5>>    直接加 5 点技能值（0 ~ 1000）
+     <<combatStatExp "attack" 3>>    按经验加，内部 ×5（与游戏 prof() 同算法）→ +15 点
+   ============================================================================ */
+
+/* ============================================================================
+   战斗动作：反剪双臂（v1.12.0）
+   ----------------------------------------------------------------------------
+   注册：build.ps1 的补丁把 <<combatReversePinRegister "left">> / "right" 插到
+         段落 Widgets Actions Generation 里 leftActions / rightActions 的初始化之后，
+         于是左右手动作列表里会多出「反剪双臂」（已按住时变成「继续压制」）。
+   结算：补丁把 <<combatReversePin>> 插到段落 Widgets Effects Man 的 effectsman 开头，
+         每回合先维护按住状态，再结算选中的动作。
+   机制：力量（physique）判定；成功把对方双臂按到背后（NPC 的 lefthand/righthand 置为
+         游戏自己的 "handhold" 状态 = 被玩家握住），对方用手类动作会被阻塞；
+         失败则被反制吃疼痛。按住的回合数由 $reversePinTurns 维护，到期自动放开。
+   适用：$enemytype 为 "man" 或 "beast" 的战斗；$leftarm/$rightarm 需空闲（0）。
+   ============================================================================ */
+
+<<widget "combatReversePinRegister">>
+	/* _args[0] = "left" / "right"：往对应手的动作列表里注册「反剪双臂」/「继续压制」 */
+	<<set _rpSide to _args[0]>>
+	<<if $combat is 1 and $position isnot "stalk" and ($enemytype is "man" or $enemytype is "beast")>>
+		<<if _rpSide is "left" and $leftarm is 0>>
+			<<if $reversePinTurns isnot undefined and $reversePinTurns gt 0>>
+				<<set _leftaction["继续压制"] to "reversePinPress">>
+			<<else>>
+				<<set _leftaction["反剪双臂"] to "reversePinArms">>
+			<</if>>
+		<<elseif _rpSide is "right" and $rightarm is 0>>
+			<<if $reversePinTurns isnot undefined and $reversePinTurns gt 0>>
+				<<set _rightaction["继续压制"] to "reversePinPress">>
+			<<else>>
+				<<set _rightaction["反剪双臂"] to "reversePinArms">>
+			<</if>>
+		<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "combatReversePin">>
+	/* 每回合状态维护 + 动作分发（挂在 effectsman 开头） */
+	<<if $reversePinTurns isnot undefined and $reversePinTurns gt 0>>
+		<<set $reversePinTurns -= 1>>
+		<<if $reversePinTurns lte 0>>
+			<<set $reversePinTurns to 0>>
+			<<if $NPCList[0] isnot undefined and $NPCList[0] isnot null>>
+				<<if $NPCList[0].lefthand is "handhold">><<set $NPCList[0].lefthand to 0>><</if>>
+				<<if $NPCList[0].righthand is "handhold">><<set $NPCList[0].righthand to 0>><</if>>
+			<</if>>
+			<br><span class="blue">对方猛地一挣，终于从你的钳制中脱开。</span>
+		<</if>>
+	<</if>>
+	<<if $leftaction is "reversePinArms" or $leftaction is "reversePinPress">>
+		<<set _rpAct to $leftaction>>
+		<<set _rpT to $lefttarget>>
+		<<set $leftaction to 0>><<set $leftactiondefault to "rest">>
+		<<combatReversePinDo _rpAct _rpT>>
+	<</if>>
+	<<if $rightaction is "reversePinArms" or $rightaction is "reversePinPress">>
+		<<set _rpAct to $rightaction>>
+		<<set _rpT to $righttarget>>
+		<<set $rightaction to 0>><<set $rightactiondefault to "rest">>
+		<<combatReversePinDo _rpAct _rpT>>
+	<</if>>
+<</widget>>
+
+<<widget "combatReversePinDo">>
+	/* 结算：_args[0] = "reversePinArms" / "reversePinPress"，_args[1] = 目标下标 */
+	<<set _rpMode to _args[0]>>
+	<<set _rpT to _args[1]>>
+	<<if _rpT is undefined or _rpT is "self">><<set _rpT to 0>><</if>>
+	<<if _rpMode is "reversePinArms">>
+		<<set _rpChance to Math.clamp(25 + (currentSkillValue('physique') / 10) - ($enemyanger / 8), 10, 90)>>
+		<<if random(1, 100) lte _rpChance>>
+			<<set $reversePinTurns to 2>>
+			<<if $NPCList[_rpT] isnot undefined and $NPCList[_rpT] isnot null>>
+				<<set $NPCList[_rpT].lefthand to "handhold">>
+				<<set $NPCList[_rpT].righthand to "handhold">>
+			<</if>>
+			<<set $enemyanger += 20>><<set $enemytrust -= 10>>
+			<<set $enemyhealth -= 6>>
+			<<if $enemytype is "beast">>
+				<br><span class="purple">你死死抱住它，把它的前肢别到背后。它扭动身体，却一时挣不开。</span>
+			<<else>>
+				<br><span class="purple">你反手扣住对方的手腕，把双臂反剪到背后。对方闷哼一声，一时挣不开。</span>
+			<</if>>
+		<<else>>
+			<<pain 4>>
+			<<set $enemyanger += 10>>
+			<br><span class="red">你伸手去扣对方的手腕，却被猛地一挣甩开，反被扭得手腕生疼。</span>
+		<</if>>
+	<<else>>
+		<<set $reversePinTurns to 2>>
+		<<set $enemyhealth -= 8>>
+		<<set $enemyanger += 15>><<set $enemytrust -= 5>>
+		<br><span class="purple">你收紧反剪的力道，把对方的手臂又往上抬了一分。</span>
+	<</if>>
+<</widget>>
+<<widget "askicon">>
+	/* 兼容 shim（v1.11.3）：0.5.11.9 原版没有 <<askicon>> 这个 icon 宏
+	   （原版只有 baskicon / mysteryicon（用 ask.png）/ socialiseicon "ask"）。
+	   但某些汉化或内容 mod 的段落文本会调用它（多半来自更新版本的游戏），
+	   没定义时整段会报 "macro <<askicon>> does not exist"。
+	   ask.png 在本版本资源里存在，这里补一个同名 widget 兜底；不覆盖任何原版内容。 */
+	<<icon "ask.png">>
+<</widget>>
+<<widget "combatStatTable">>
+	/* 等级档位表（F- ~ S，共 16 档） */
+	<<set _csLevels to [
+		{ value: 0,    level: "F-", color: "red"    },
+		{ value: 67,   level: "F",  color: "red"    },
+		{ value: 133,  level: "F+", color: "pink"   },
+		{ value: 200,  level: "D-", color: "purple" },
+		{ value: 267,  level: "D",  color: "purple" },
+		{ value: 333,  level: "D+", color: "purple" },
+		{ value: 400,  level: "C-", color: "blue"   },
+		{ value: 467,  level: "C",  color: "blue"   },
+		{ value: 533,  level: "C+", color: "blue"   },
+		{ value: 600,  level: "B-", color: "lblue"  },
+		{ value: 667,  level: "B",  color: "lblue"  },
+		{ value: 733,  level: "B+", color: "lblue"  },
+		{ value: 800,  level: "A-", color: "teal"   },
+		{ value: 867,  level: "A",  color: "teal"   },
+		{ value: 933,  level: "A+", color: "teal"   },
+		{ value: 1000, level: "S",  color: "green"  }
+	]>>
+	/* 每个属性的 states 表（characteristic-box 需要 requiredValue / level / color / description） */
+	<<set _csTableAttack to []>>
+	<<set _csTableDefense to []>>
+	<<set _csTableAgility to []>>
+	<<for _csI to 0; _csI lt _csLevels.length; _csI++>>
+		<<run _csTableAttack.push({ requiredValue: _csLevels[_csI].value, level: _csLevels[_csI].level, color: _csLevels[_csI].color, description: "攻击力 +" + (_csI * 5), bonus: _csI * 5 })>>
+		<<run _csTableDefense.push({ requiredValue: _csLevels[_csI].value, level: _csLevels[_csI].level, color: _csLevels[_csI].color, description: "防御力 +" + (_csI * 5), bonus: _csI * 5 })>>
+		<<run _csTableAgility.push({ requiredValue: _csLevels[_csI].value, level: _csLevels[_csI].level, color: _csLevels[_csI].color, description: "敏捷 +" + (_csI * 5), bonus: _csI * 5 })>>
+	<</for>>
+<</widget>>
+
+<<widget "combatStatInit">>
+	/* 惰性初始化：新档第一次渲染时建立字段，旧档同样安全
+	   v1.2.0 及更早的存档里第三项叫 dodge，这里自动迁移到 agility */
+	<<if $combatSkills is undefined>>
+		<<set $combatSkills to { attack: 0, defense: 0, agility: 0 }>>
+	<</if>>
+	<<if $combatSkills.agility is undefined>>
+		<<set $combatSkills.agility to ($combatSkills.dodge isnot undefined ? $combatSkills.dodge : 0)>>
+	<</if>>
+	<<if $combatBonus is undefined>>
+		<<set $combatBonus to { attack: 0, defense: 0, agility: 0 }>>
+	<</if>>
+	<<if $combatBonus.agility is undefined>>
+		<<set $combatBonus.agility to 0>>
+	<</if>>
+<</widget>>
+
+<<widget "combatStatSync">>
+	/* 把 $combatSkills 的档位换算成 $combatBonus（战斗公式与特征面板都调用它）
+	   战斗里会频繁调用，所以只做必要的计算，不渲染任何东西 */
+	<<combatStatInit>>
+	<<combatStatTable>>
+	<<set _csLevelAttack to 0>>
+	<<set _csLevelDefense to 0>>
+	<<set _csLevelAgility to 0>>
+	<<for _csI to 0; _csI lt _csLevels.length; _csI++>>
+		<<if $combatSkills.attack gte _csLevels[_csI].value>>
+			<<set _csLevelAttack to _csI>>
+		<</if>>
+		<<if $combatSkills.defense gte _csLevels[_csI].value>>
+			<<set _csLevelDefense to _csI>>
+		<</if>>
+		<<if $combatSkills.agility gte _csLevels[_csI].value>>
+			<<set _csLevelAgility to _csI>>
+		<</if>>
+	<</for>>
+	<<set $combatBonus to { attack: _csTableAttack[_csLevelAttack].bonus, defense: _csTableDefense[_csLevelDefense].bonus, agility: _csTableAgility[_csLevelAgility].bonus }>>
+<</widget>>
+
+<<widget "combatStatBoxes">>
+	<<combatStatSync>>
+	/* 渲染三个属性框（复用游戏自身的 characteristic-box，样式/配色/百分比条与武器技能一致） */
+	<<set _csCfgAttack to { name: "攻击", displayType: "grade", currentValue: $combatSkills.attack, modifier: 100, modTypes: { good: [], bad: [] }, states: _csTableAttack }>>
+	<<set _csCfgDefense to { name: "防御", displayType: "grade", currentValue: $combatSkills.defense, modifier: 100, modTypes: { good: [], bad: [] }, states: _csTableDefense }>>
+	<<set _csCfgAgility to { name: "敏捷", displayType: "grade", currentValue: $combatSkills.agility, modifier: 100, modTypes: { good: [], bad: [] }, states: _csTableAgility }>>
+	<<characteristic-box _csCfgAttack>>
+	<<characteristic-box _csCfgDefense>>
+	<<characteristic-box _csCfgAgility>>
+	<br>
+	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.12.1</span></span>
+<</widget>>
+
+<<widget "combatStatAdd">>
+	/* 直接加技能值：<<combatStatAdd "attack" 1>> → 攻击 +1 点（数值 0 ~ 1000）
+	   第三项同时接受旧名 "dodge"（自动当作 "agility"） */
+	<<combatStatInit>>
+	<<set _csKey to _args[0]>>
+	<<set _csAmount to _args[1]>>
+	<<if _csKey is "dodge">>
+		<<set _csKey to "agility">>
+	<</if>>
+	<<if _csKey is "attack" or _csKey is "defense" or _csKey is "agility">>
+		<<if _csAmount>>
+			<<run $combatSkills[_csKey] = Math.clamp(($combatSkills[_csKey] || 0) + Number(_csAmount), 0, 1000)>>
+		<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "combatStatExp">>
+	/* 按经验加（内部 ×5，与游戏 prof() 同算法）：<<combatStatExp "attack" 3>> → 攻击 +15 点 */
+	<<combatStatInit>>
+	<<set _csKey3 to _args[0]>>
+	<<set _csAmount3 to _args[1]>>
+	<<if _csKey3 is "dodge">>
+		<<set _csKey3 to "agility">>
+	<</if>>
+	<<if _csKey3 is "attack" or _csKey3 is "defense" or _csKey3 is "agility">>
+		<<if _csAmount3>>
+			<<run $combatSkills[_csKey3] = Math.clamp(($combatSkills[_csKey3] || 0) + (Number(_csAmount3) * 5), 0, 1000)>>
+		<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "combatStatSet">>
+	/* 直接设定：<<combatStatSet "attack" 500>>（调试/作弊用） */
+	<<combatStatInit>>
+	<<set _csKey2 to _args[0]>>
+	<<set _csValue2 to _args[1]>>
+	<<if _csKey2 is "dodge">>
+		<<set _csKey2 to "agility">>
+	<</if>>
+	<<if _csKey2 is "attack" or _csKey2 is "defense" or _csKey2 is "agility">>
+		<<if _csValue2 isnot undefined>>
+			<<run $combatSkills[_csKey2] = Math.clamp(Number(_csValue2), 0, 1000)>>
+		<</if>>
+	<</if>>
+<</widget>>
+
+/* ============================================================================
+   战利品：击败 NPC 后的掉落结算（v1.4.0 起；v1.6.0 修正 1v1 不触发的问题）
+   ----------------------------------------------------------------------------
+   两个挂钩（都调用同一个 combatLootDrop，按 NPC 的 .looted 标记幂等，不会重复发）：
+     ① 多敌人战斗：段落 Widgets NPC Damage 的 <<widget "defeatnpc">> 内，
+        在「… staggers back, defeated.」之后调用 <<combatLootDrop _i>>。
+     ② 胜利结算（覆盖 1v1）：段落 Widgets End Combat 的 <<widget "endcombat">> 开头
+        调用 <<combatLootVictory>>，它在 $enemyhealth lte 0 时给被击败的 NPC 补发。
+    为什么需要 ②：defeatnpc 全游戏只有 3 处调用，全部被 <<if $enemyno gte 2>> 守卫，
+    单挑时敌人是由 $enemyhealth 归零 → endcombat 结束的，永远不经过 defeatnpc。
+
+   规则（概率与金额都写在下面三个 widget 里，随时可改）：
+     人类 NPC（$NPCList[_i].type is "man"）
+       · 65% 掉钱：£10 ~ £30，走游戏自身的 <<money>> 接口，来源记为 thievery
+       · 30% 掉物品：从物品池随机一件
+     非人类 NPC（beast / plant / tentacles 等其余类型）
+       · 45% 掉「它身上带着的东西」（前一个受害者留下的）：同一个物品池
+
+   物品池（combatLootItem）：
+       · 45% 避孕套 ×1~2      → $condoms
+       · 30% 胡椒喷雾 +1 格    → <<spray 1>>（需要已有喷雾罐且未补满，否则转为下面一项）
+       · 25% 零钱（记为赃款）  → $blackmoney £5 ~ £15
+
+   战斗结束界面（v1.7.0）：
+     每次掉落都会记进 $combatLootLog（本场战斗的临时清单），战斗结束时由
+     <<combatLootSummary>> 渲染成「战利品」面板（含分项 + 现金/赃款合计）并清空；
+     战斗开始时由 <<combatLootClear>>（挂在 combatinit 上）清空，保证不串场。
+     想让击败瞬间不再显示绿字、只在结束面板汇总：控制台执行
+       SugarCube.State.variables.combatLootInline = false;
+   只使用游戏原本就存在的字段（额外只有本场战斗的 .looted 标记与 $combatLootLog 清单）。
+   ============================================================================ */
+
+<<widget "combatLootVictory">>
+	/* 战斗胜利（$enemyhealth 归零）时的战利品结算 + 结束面板。
+	   注意：<<endcombat>> 在游戏里有近 3000 处调用，很多与 NPC 战斗无关（善后/结束场景），
+	   所以这里对所有状态做防御性判断，任何字段缺失都不允许打断战斗结束。 */
+	<<if $enemyhealth isnot undefined and $enemyhealth lte 0 and typeof $NPCList is "object" and $NPCList isnot null>>
+		<<run console.log("[CombatSkills] 战利品结算开始", JSON.stringify({ enemyhealth: $enemyhealth, enemynomax: $enemynomax, npcCount: $NPCList.length }))>>
+		<<if $enemynomax isnot undefined and typeof $enemynomax is "number" and $enemynomax gte 2>>
+			<<for _clI to 0; _clI lt $enemynomax; _clI++>>
+				<<if $NPCList[_clI] isnot undefined and $NPCList[_clI] isnot null and $NPCList[_clI].stance is "defeated">>
+					<<combatLootDrop _clI>>
+				<</if>>
+			<</for>>
+		<<else>>
+			<<combatLootDrop 0>>
+		<</if>>
+		<<run console.log("[CombatSkills] 战利品结算完成", JSON.stringify($combatLootLog))>>
+	<</if>>
+	/* 战斗结束界面：汇总显示本场获得的战利品 */
+	<<combatLootSummary>>
+<</widget>>
+
+<<widget "combatLootClear">>
+	/* 战斗开始时清空上一场的记录（挂在 combatinit 上，保证汇总面板不会串场） */
+	<<set $combatLootLog to []>>
+<</widget>>
+
+<<widget "combatLootLogAdd">>
+	/* 记一条战利品：_args[0]=分类文字 / _args[1]=内容文字 / _args[2]=分类键(cash|illicit|item) / _args[3]=金额（可选） */
+	<<if typeof $combatLootLog isnot "object" or $combatLootLog is null or typeof $combatLootLog.push isnot "function">>
+		<<set $combatLootLog to []>>
+	<</if>>
+	<<run $combatLootLog.push({ label: _args[0], text: _args[1], kind: _args[2], amount: (_args[3] || 0) })>>
+<</widget>>
+
+<<widget "combatLootSummary">>
+	/* 战斗结束界面的「战利品」面板：列出本场获得的每一样东西，显示后清空。
+	   显示与否：$combatLootInline 为 false 时只是不在击败瞬间显示绿字，面板照常显示。 */
+	<<if typeof $combatLootLog is "object" and $combatLootLog isnot null and $combatLootLog.length gt 0>>
+		<div id="combatLootSummary">
+			<span class="gold">战利品</span>
+			<div class="description">本场战斗的收获：</div>
+			<ul class="lootList">
+				<<for _clL to 0; _clL lt $combatLootLog.length; _clL++>>
+					<li><span class="lblue"><<print $combatLootLog[_clL].label>></span>　<<print $combatLootLog[_clL].text>></li>
+				<</for>>
+			</ul>
+			<<set _clCashSum to 0>>
+			<<set _clIllicitSum to 0>>
+			<<for _clL to 0; _clL lt $combatLootLog.length; _clL++>>
+				<<if $combatLootLog[_clL].kind is "cash">>
+					<<set _clCashSum += $combatLootLog[_clL].amount>>
+				<</if>>
+				<<if $combatLootLog[_clL].kind is "illicit">>
+					<<set _clIllicitSum += $combatLootLog[_clL].amount>>
+				<</if>>
+			<</for>>
+			<<if _clCashSum gt 0 or _clIllicitSum gt 0>>
+				<div class="description">合计：<<if _clCashSum gt 0>>现金 £<<print (_clCashSum / 100)>><</if>><<if _clCashSum gt 0 and _clIllicitSum gt 0>>，<</if>><<if _clIllicitSum gt 0>>赃款 £<<print (_clIllicitSum / 100)>><</if>></div>
+			<</if>>
+		</div>
+		<<set $combatLootLog to []>>
+	<</if>>
+<</widget>>
+
+<<widget "combatLootDrop">>
+	/* 每个 NPC 只发一次（.looted 标记），defeatnpc 与 combatLootVictory 两条路都走它。
+	   人类判定：本 build 里 $NPCList[i].type 对人类是 "human"（部分命名 NPC 可能是 "man"），
+	   所以同时看 type 与 $enemytype，避免把人类当成野兽处理。 */
+	<<set _clIndex to _args[0]>>
+	<<if _clIndex isnot undefined and typeof $NPCList is "object" and $NPCList isnot null and $NPCList[_clIndex] isnot undefined and $NPCList[_clIndex] isnot null and !$NPCList[_clIndex].looted>>
+		<<set $NPCList[_clIndex].looted to true>>
+		<<if $NPCList[_clIndex].type is "human" or $NPCList[_clIndex].type is "man" or $enemytype is "man">>
+			<<combatLootHuman _clIndex>>
+		<<else>>
+			<<combatLootCreature _clIndex>>
+		<</if>>
+	<</if>>
+<</widget>>
+
+<<widget "combatLootHuman">>
+	/* 人类 NPC：65% 掉钱（£10 ~ £30；游戏货币单位是便士，£1 = 100），30% 掉物品 */
+	<<if random(100) lt 65>>
+		<<set _clCash to 1000 + (random(0, 20) * 100)>>
+		<<money _clCash "thievery">>
+		<<set _clText to "£" + (_clCash / 100)>>
+		<<combatLootLogAdd "现金" _clText "cash" _clCash>>
+		<<if $combatLootInline isnot false>>
+			<br><span class="green">你从对方身上搜出 £<<print (_clCash / 100)>>。</span>
+		<</if>>
+	<</if>>
+	<<if random(100) lt 30>>
+		<<combatLootItem "man">>
+	<</if>>
+<</widget>>
+
+<<widget "combatLootCreature">>
+	/* 非人类 NPC：45% 掉落它身上带着的东西 */
+	<<if random(100) lt 45>>
+		<<combatLootItem "creature">>
+	<</if>>
+<</widget>>
+
+<<widget "combatLootItem">>
+	/* 物品池：_args[0] = "man" / "creature"，只影响文案 */
+	<<set _clFrom to _args[0]>>
+	<<set _clRoll to random(1, 100)>>
+	<<if _clRoll lte 45>>
+		<<if typeof $condoms isnot "number">><<set $condoms to 0>><</if>>
+		<<set _clAmount to 1 + random(0, 1)>>
+		<<set $condoms += _clAmount>>
+		<<set _clText to _clAmount + " 个未拆封的避孕套">>
+		<<combatLootLogAdd "物品" _clText "item" 0>>
+		<<if $combatLootInline isnot false>><br><span class="green"><<if _clFrom is "man">>你从对方身上搜到<<else>>你从它身上取下<</if>> <<print _clAmount>> 个未拆封的避孕套。</span><</if>>
+	<<elseif _clRoll lte 75 and typeof $spraymax is "number" and typeof $spray is "number" and $spraymax gt 0 and $spray lt $spraymax>>
+		<<spray 1>>
+		<<combatLootLogAdd "物品" "胡椒喷雾 1 格" "item" 0>>
+		<<if $combatLootInline isnot false>><br><span class="green"><<if _clFrom is "man">>你从对方身上搜到<<else>>你从它身上取下<</if>>一罐胡椒喷雾，补满 1 格。</span><</if>>
+	<<else>>
+		<<if typeof $blackmoney isnot "number">><<set $blackmoney to 0>><</if>>
+		<<set _clAmount to 500 + (random(0, 10) * 100)>>
+		<<set $blackmoney += _clAmount>>
+		<<set _clText to "£" + (_clAmount / 100) + " 零钱（赃款）">>
+		<<combatLootLogAdd "赃款" _clText "illicit" _clAmount>>
+		<<if $combatLootInline isnot false>><br><span class="green"><<if _clFrom is "man">>你从对方身上摸出<<else>>它身上缠着<</if>> £<<print (_clAmount / 100)>> 零钱（记为赃款）。</span><</if>>
+	<</if>>
+<</widget>>
+
+/* ============================================================================
+   拳击俱乐部（v1.8.0）—— 康努达塔斯街上的新地点
+   ----------------------------------------------------------------------------
+   入口：段落 Connudatus Street 的「Places of interest」列表里插入一条链接
+         （由 build.ps1 的第 10 条 TweeReplacer 补丁完成）。
+   组成：Boxing Club（大厅）→ 陪练挣钱 / 拳击训练 / 更衣室(0:01) / 浴室和淋浴间(0:01) / 离开
+   数值：陪练 = 攻击 +1、防御 +1、敏捷 +1（本 mod 的战斗属性）、疼痛（<<pain>> + <<gpain>> 指示器）、
+               £20~40（游戏货币单位是便士，£1 = 100）、体能 +、疲劳 +、压力 −
+         训练 = 攻击 +2、敏捷 +1、运动（athletics）+3 点经验、体能 +、疲劳 +、压力 −
+                **要交 £20 学费**（钱不够时只给提示，不会进入训练段落）
+   注意：宽容模式（$gamemode 为 "soft"）下游戏会把 $pain 强制归零，陪练会显示提示而不是装作加了疼痛
+   时间：更衣室与淋浴间各 0:01；陪练 0:30；训练 0:20；进出大厅不耗时
+   存档：只用 $boxingClub = { spars, sessions } 这个计数（惰性初始化）
+   ============================================================================ */
+
+:: Boxing Club
+<<effects>><<set $outside to 0>>
+<<set $boxingClub to ($boxingClub || { spars: 0, sessions: 0 })>>
+一间开在康努达塔斯街后巷的拳击俱乐部。汗味、松香和旧皮革的气味混在一起，场地中央吊着一只磨损严重的沙袋，围绳边有人蹲着缠手带。
+<<if $boxingClub.spars lt 1>>
+	<br><br>一个叼着牙签的教练上下打量你："想赚点零钱？爬进围绳里挨几拳就有。"
+<<elseif $boxingClub.spars gte 10>>
+	<br><br>教练冲你点点头："你越来越耐打了。今晚有个下手很重的家伙，要不要上？"
+<<else>>
+	<br><br>教练朝围绳里扬了扬下巴："有场子空着，随时可以上。"
+<</if>>
+<br><br>
+<<exerciseicon>><<link [[当陪练挣钱 (0:30)|Boxing Club Spar]]>><<pass 30>><</link>>
+<br>
+<<if $money gte 2000>>
+	<<exerciseicon>><<link [[拳击训练 (0:20 £20)|Boxing Club Training]]>><<pass 20>><<money -2000 "boxingClub">><</link>>
+<<else>>
+	<<exerciseicon>><span class="blue">你想上拳台练一会儿，教练伸手要 £20。</span>
+<</if>>
+<br>
+<<changingroomicon>><<link [[更衣室 (0:01)|Boxing Club Changing Room]]>><<pass 1>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[浴室和淋浴间 (0:01)|Boxing Club Shower]]>><<pass 1>><</link>>
+<br>
+<<getouticon>><<link [[离开|Connudatus Street]]>><</link>>
+
+:: Boxing Club Spar
+<<effects>><<set $outside to 0>>
+<<set $boxingClub to ($boxingClub || { spars: 0, sessions: 0 })>>
+<<run $boxingClub.spars += 1>>
+<<set _pay to 2000 + (random(0, 20) * 100)>>
+<<if random(1, 3) is 1>>
+	你被推进围绳里，对面是个比你重两圈的壮汉。你护住下巴硬撑过三个回合，他打得极重，但你的脚步一次比一次稳。
+<<elseif random(1, 3) is 2>>
+	对手动作很快，你挨了几下，也结结实实还了几拳。围绳外的人起哄叫好，有人往台上扔硬币。
+<<else>>
+	这一场打得很顺，几次干净的直拳让对手踉跄后退。教练在场边点头记下你的名字。
+<</if>>
+<br><br>
+你摘下护齿，接过教练递来的钞票。<<money _pay "boxingClub">>
+<<combatStatAdd "attack" 1>><<combatStatAdd "defense" 2>><<combatStatAdd "agility" 1>><<gwillpower>><<willpower 1>>
+<<set _clPain to 10 + random(1, 15)>>
+<<if $gamemode is "soft">>
+	<br><span class="blue">（宽容模式：疼痛被禁用，本场只记疲劳。）</span>
+<<else>>
+	<<pain _clPain>><<gpain>>
+<</if>>
+<<gphysique>><<physique 4>><<gtiredness>><<tiredness 10>><<lstress>><<stress -6>>
+<br><br>
+<span class="lblue">攻击 +1、防御 +2、敏捷 +1、意志 +1，获得 £<<print (_pay / 100)>>；<<if $gamemode is "soft">>疲劳上升<<else>>疼痛与疲劳上升<</if>>，体能略有提升。</span>
+<br><br>
+<<exerciseicon>><<link [[再打一场 (0:30)|Boxing Club Spar]]>><<pass 30>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[去淋浴间 (0:01)|Boxing Club Shower]]>><<pass 1>><</link>>
+<br>
+<<getouticon>><<link [[回到大厅|Boxing Club]]>><</link>>
+
+:: Boxing Club Training
+<<effects>><<set $outside to 0>>
+<<set $boxingClub to ($boxingClub || { spars: 0, sessions: 0 })>>
+<<run $boxingClub.sessions += 1>>
+<<if random(1, 3) is 1>>
+	教练把沙袋推到你面前，一遍遍纠正你的出拳角度，直到肩膀发酸。
+<<elseif random(1, 3) is 2>>
+	你和另一个学员做反应靶训练，他喊得越来越快，你的拳头却越来越准。
+<<else>>
+	你独自跳绳、打沙袋、绕场慢跑，直到护具里全是汗。
+<</if>>
+<br><br>
+<<combatStatAdd "attack" 2>><<combatStatAdd "agility" 1>>
+<<gathletics>><<athletics 5>>
+<<gphysique>><<physique 6>><<gtiredness>><<tiredness 8>><<lstress>><<stress -4>>
+<br><br>
+<span class="lblue">攻击 +2、敏捷 +1、运动 +5（当前 <<print $athletics>>/1000）；体能提升，疲劳上升。</span>
+<br><br>
+<<exerciseicon>><<link [[继续训练 (0:20)|Boxing Club Training]]>><<pass 20>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[去淋浴间 (0:01)|Boxing Club Shower]]>><<pass 1>><</link>>
+<br>
+<<getouticon>><<link [[回到大厅|Boxing Club]]>><</link>>
+
+:: Boxing Club Changing Room
+<<effects>><<set $outside to 0>>
+更衣室不大：靠墙一排铁皮储物柜，长凳上散着几条毛巾，空气里是洗衣粉和汗混在一起的味道。
+<br><br>
+<<changingroomicon>><<link [[打开你的衣柜|Changing Room]]>><<set $wardrobeExit to "Boxing Club Changing Room">><</link>>
+<br>
+<<bathroomicon "shower">><<link [[去淋浴间 (0:01)|Boxing Club Shower]]>><<pass 1>><</link>>
+<br>
+<<getouticon>><<link [[回到大厅|Boxing Club]]>><</link>>
+
+:: Boxing Club Shower
+<<effects>><<set $outside to 0>>
+<<if random(1, 3) is 1>>
+	热水早被前面的人用完了，冷水浇下来让你打了个激灵。<<larousal>>
+<<else>>
+	水汽很快充满小小的淋浴间，热水冲掉身上的汗和松香。
+<</if>>
+你把自己洗得干干净净。<<wash>>
+<br><br>
+<<getouticon>><<link [[走出淋浴间|Boxing Club]]>><</link>>
+<br>
+<<changingroomicon>><<link [[回更衣室|Boxing Club Changing Room]]>><</link>>
+
+/* ============================================================================
+   丰收街酒吧斗殴（v1.11.0）
+   ----------------------------------------------------------------------------
+   入口：段落 Pub（丰收街的酒吧）的常驻链接列表里插一条「斗殴」，
+         由 build.ps1 的第 11 条 TweeReplacer 补丁完成。
+   流程：Pub Brawl（约战，生成对手）→ Pub Brawl Fight（复用游戏战斗系统）
+         → Pub Brawl Finish（赢：彩头；输：被保镖丢出酒吧 → 丰收街）
+   说明：战斗本身完全走游戏自己的 <<maninit>> / <<stateman>> / <<actionsman>>，
+         所以本 mod 的攻击/防御/敏捷成长钩子会自动生效（打拳、挨打都会涨）。
+         $pubBrawlWins 记录胜场，用来逐步加强对手（惰性初始化，不需要迁移）。
+   ============================================================================ */
+
+:: Pub Brawl
+<<set $outside to 0>><<set $location to "pub">><<effects>><<set $bus to "harvest">>
+<<set $pubBrawlWins to ($pubBrawlWins || 0)>>
+<<generate1>><<person1>>
+酒吧角落被腾出一小片空地，几张椅子被推到一边，一群喝得半醉的常客正围着起哄。一个<<person>>把外套甩到椅背上，冲你扬了扬下巴："新面孔？敢不敢来一场？输的人自己滚出去。"
+<<if $pubBrawlWins gte 1 and typeof $NPCList[0].health is "number">>
+	<<set $NPCList[0].health += Math.min(200, $pubBrawlWins * 25)>>
+<</if>>
+<br><br>
+<<if $pubBrawlWins gte 3>>
+	"又是你？"<<He>>咧嘴一笑，"今晚可没那么便宜了，我可是看着你打的。"
+	<br><br>
+<</if>>
+围观的人往后退了半步，把空地让得更大。有人开始数数。
+<br><br>
+<<agreeicon>><<link [[接受斗殴|Pub Brawl Fight]]>><<set $fightstart to 1>><</link>>
+<br>
+<<refuseicon>><<link [[不惹麻烦|Pub]]>><<endevent>><</link>>
+
+:: Pub Brawl Fight
+<<if $fightstart is 1>>
+	<<set $fightstart to 0>>
+	<<neutral 1>>
+	<<maninit>>
+	<<set $enemytrust -= 100>>
+	<<set $enemyanger += 200>>
+	<<npcidlegenitals>>
+<</if>>
+
+<<effects>>
+<<effectsman>>
+<<man>>
+<<stateman>>
+<br><br>
+<<actionsman>>
+
+<<if _combatend or ($pain gte 100 and $willpowerpain is 0)>>
+	<span id="next"><<link [[Next|Pub Brawl Finish]]>><</link>></span><<nexttext>>
+<<else>>
+	<span id="next"><<link [[Next|Pub Brawl Fight]]>><</link>></span><<nexttext>>
+<</if>>
+
+:: Pub Brawl Finish
+<<set $outside to 0>><<set $location to "pub">><<effects>>
+
+<<if $enemyhealth lte 0>>
+	你侧身躲开挥来的拳头，一记结实的直拳把对手打得踉跄后退，一屁股坐倒在地上。围观的人哄堂大笑，有人往你手里塞了几张钞票，还有人拍着你的背叫好。
+	<br><br>
+	<<set $pubBrawlWins to ($pubBrawlWins || 0) + 1>>
+	<<money (500 + random(0, 10) * 100) "pubBrawl">>
+	<<gphysique>><<physique 2>><<lstress>><<stress -6>><<ltrauma>><<trauma -3>>
+	<<if $NPCList[0] isnot undefined and $NPCList[0] isnot null>>
+		<<set $NPCList[0].looted to true>>
+	<</if>>
+	<br><br>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<getouticon>><<link [[回到酒吧|Pub]]>><<endevent>><</link>>
+<<elseif $enemyarousal gte $enemyarousalmax>>
+	<<ejaculation "short">>
+	对手在围观者的起哄声里涨红了脸，退到一边喘着气。这场斗殴不了了之，你趁机从人群里挤了出去。
+	<br><br>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<getouticon>><<link [[回到酒吧|Pub]]>><<endevent>><</link>>
+<<else>>
+	你的拳头落了空，反被对手一记扫腿撂倒。围观的人哄笑起来。酒吧的保镖拨开人群，抓住你的衣领把你从侧门拖了出去，一把丢在丰收街冰凉的石板路上。
+	<br><br>
+	<<gstress>><<stress 12>><<gtrauma>><<trauma 6>><<gpain>><<pain 10>>
+	<br><br>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<getouticon>><<link [[从地上爬起来|Harvest Street]]>><<pass 10>><<endevent>><</link>>
+<</if>>
