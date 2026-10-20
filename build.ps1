@@ -3,7 +3,7 @@
 #  ---------------------------------------------------------------------------
 #  1) 从 Degrees of Lewdity.html 提取相关段落原文
 #  2) 断言每个插入锚点在该段落中恰好出现 1 次（游戏版本不符则中止，不产出文件）
-#  3) 生成 mod 的 boot.json（1 处界面插入 + 13 处战斗/地点补丁，全部走 TweeReplacer）
+#  3) 生成 mod 的 boot.json（1 处界面插入 + 9 处战斗/地点补丁，全部走 TweeReplacer）
 #     另校验 mod 自带的两个 JS 补丁（防御力减伤 / 敏捷接入 currentSkillValue）与 CSS 面板样式
 #  4) 打包 CombatSkills_v<ver>.zip（zip 根目录即 boot.json，条目路径用正斜杠）
 #  5) 生成/合并服务器自动加载清单 modList.json
@@ -13,7 +13,7 @@
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.12.1'
+$Version = '1.12.2'
 $ScriptDir = $PSScriptRoot
 $GameDir   = Split-Path -Parent $ScriptDir
 $HtmlPath  = Join-Path $GameDir 'Degrees of Lewdity.html'
@@ -388,6 +388,7 @@ if ($pinLeft.passage -ne 'Widgets Actions Generation' -or $pinRight.passage -ne 
 if ($pinExec.passage -ne 'Widgets Effects Man') { throw '反剪双臂结算补丁段落不对' }
 Write-Host '      反剪双臂自检通过（左右手注册 / effectsman 结算 / 力量判定 / 锁手与到期放开）✓'
 
+
 # ---- 校验战利品面板的 CSS：必须只作用于 #combatLootSummary，避免污染游戏样式 ----
 $cssPath = Join-Path $SrcDir 'CombatSkills.css'
 if (-not (Test-Path -LiteralPath $cssPath)) { throw "缺少样式文件：$cssPath" }
@@ -404,7 +405,8 @@ Write-Host '      面板 CSS 自检通过（选择器全部限定在 #combatLoot
 # ---- 校验 JS 补丁：语法 + 档位表与 twee 一致 ----
 $jsPatchPath = Join-Path $SrcDir 'dist\CombatSkillsPatch.js'
 $jsInstallPath = Join-Path $SrcDir 'dist\js\installCombatSkillsPatch.js'
-foreach ($f in @($jsPatchPath, $jsInstallPath)) {
+$jsClothesPath = Join-Path $SrcDir 'dist\CombatSkillsClothes.js'
+foreach ($f in @($jsPatchPath, $jsInstallPath, $jsClothesPath)) {
     if (-not (Test-Path -LiteralPath $f)) { throw "缺少脚本文件：$f" }
 }
 $nodeExe = $null
@@ -414,7 +416,7 @@ foreach ($cand in @('node', 'C:\Program Files\nodejs\node.exe', 'nodejs\node.exe
     if (Test-Path -LiteralPath $cand) { $nodeExe = $cand; break }
 }
 if ($nodeExe) {
-    foreach ($f in @($jsPatchPath, $jsInstallPath)) {
+    foreach ($f in @($jsPatchPath, $jsInstallPath, $jsClothesPath)) {
         & $nodeExe --check $f
         if ($LASTEXITCODE -ne 0) { throw "JS 语法检查失败：$f" }
     }
@@ -464,6 +466,34 @@ foreach ($cn in $map.Keys) {
 }
 Write-Host ("      敏捷接入 OK：{0}；每档系数 JS/Twee 一致（攻击 {1} / 防御 {2} / 敏捷 {3}）✓" -f ($agSkills -join '/'), $jsRate['attack'], $jsRate['defense'], $jsRate['agility'])
 
+$clothesChecks = [ordered]@{
+    '衣物战利品 widget'        = '<<widget "combatLootClothes">>'
+    '衣物战利品挂到人类分支'    = '<<combatLootHuman _clIndex>><<combatLootClothes _clIndex>>'
+    '衣物战利品剥掉对方衣物'    = '<<set $NPCList[_clIdx].clothes[_clSlot].name to "naked">>'
+    '衣物战利品记录进面板'      = '<<combatLootLogAdd "衣物" _clGot.name "item" 0>>'
+    '衣物战利品走 JS 接口'      = 'window.CombatSkills_lootClothes(_clSlot, _clName, _clInt)'
+}
+foreach ($k in $clothesChecks.Keys) {
+    if (-not $tweeText.Contains($clothesChecks[$k])) { throw "衣物战利品缺少：$k（应为 $($clothesChecks[$k])）" }
+}
+if ($jsText -notmatch 'window\.CombatSkills_lootClothes\s*=') { throw 'CombatSkillsPatch.js 里没有 window.CombatSkills_lootClothes（战利品衣物转换）' }
+if (-not (Test-Path -LiteralPath $jsClothesPath)) { throw '缺少 dist/CombatSkillsClothes.js（NPC 衣物别名表）' }
+$jsClothesText = [System.IO.File]::ReadAllText($jsClothesPath, [System.Text.Encoding]::UTF8)
+if ($jsClothesText -notmatch 'CombatSkills_clothesAlias') { throw 'CombatSkillsClothes.js 里没有 CombatSkills_clothesAlias' }
+$aliasUpper = ([regex]::Matches($jsClothesText, '(?s)upper:\s*\{(.*?)\},\s*lower:')).Count
+$aliasPairs = ([regex]::Matches($jsClothesText, '"[^"]+"\s*:\s*"[^"]+"')).Count
+if ($aliasPairs -lt 60) { throw "CombatSkillsClothes.js 的别名条目太少（$aliasPairs），可能被改坏" }
+Write-Host ("      衣物战利品自检通过（人类分支 {0}% 概率 / 名称转换 / 进衣柜 / 记录面板，别名 {1} 条）✓" -f 40, $aliasPairs)
+# ---- 逻辑测试：用 Node 模拟游戏环境，验证「名称转换 → 进衣柜」的实际行为 ----
+$clothesTest = Join-Path $ScriptDir 'tools\test-loot-clothes.js'
+if ($nodeExe -and (Test-Path -LiteralPath $clothesTest)) {
+    $testOut = & $nodeExe $clothesTest $HtmlPath 2>&1
+    $testCode = $LASTEXITCODE
+    $testOut | ForEach-Object { Write-Host ("        " + $_) }
+    if ($testCode -ne 0) { throw '战利品衣物逻辑测试失败（tools/test-loot-clothes.js）' }
+    Write-Host '      战利品衣物逻辑测试通过（Node 模拟：别名/同名/耐久钳制/无匹配返回 null）✓'
+}
+
 # ---- 3) 生成 boot.json ----
 Write-Host '[3/6] 生成 boot.json ...'
 $boot = [ordered]@{
@@ -473,7 +503,7 @@ $boot = [ordered]@{
     scriptFileList_earlyload    = @()
     scriptFileList_inject_early = @('dist/CombatSkillsPatch.js')
     scriptFileList_preload      = @()
-    scriptFileList              = @('dist/js/installCombatSkillsPatch.js')
+    scriptFileList              = @('dist/CombatSkillsClothes.js', 'dist/js/installCombatSkillsPatch.js')
     tweeFileList                = @('twee/CombatSkills.tw')
     imgFileList                 = @()
     imgFileReplaceList          = @()
@@ -524,7 +554,7 @@ $entryNames = @($zip.Entries | ForEach-Object { $_.FullName })
 $zip.Dispose()
 if ($entryNames -notcontains 'boot.json') { throw 'zip 根目录缺少 boot.json（ModLoader 无法识别）' }
 if ($entryNames -notcontains 'twee/CombatSkills.tw') { throw 'zip 中缺少 twee/CombatSkills.tw（路径必须为正斜杠）' }
-foreach ($need in @('dist/CombatSkillsPatch.js', 'dist/js/installCombatSkillsPatch.js', 'CombatSkills.css')) {
+foreach ($need in @('dist/CombatSkillsPatch.js', 'dist/js/installCombatSkillsPatch.js', 'dist/CombatSkillsClothes.js', 'CombatSkills.css')) {
     if ($entryNames -notcontains $need) { throw "zip 中缺少 $need（boot.json 引用了它）" }
 }
 if (($entryNames | Where-Object { $_ -like '*\*' }).Count -gt 0) { throw 'zip 条目含反斜杠，ModLoader 将无法按路径取文件' }
