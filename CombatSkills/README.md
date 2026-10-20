@@ -227,6 +227,11 @@ v1.11.2 已改成 `lte`，并在构建脚本里加了运算符白名单校验：
 
 - 判定「胜利」的标准是 `$enemyhealth lte 0`（把对方打到失去战斗力）。
   **靠兴奋/高潮结束的战斗不会掉落**（那不算击败，游戏走的是另一条结束分支）；如需覆盖可以再加挂钩。
+- **衣物**：击败**人类** NPC 时另有 **40%** 概率扒下对方身上剩下的衣物（上衣或下装二选一）：
+  先把 NPC 的简化衣物名转换成玩家可穿戴的同名衣物（`dist/CombatSkillsPatch.js` 的
+  `window.CombatSkills_lootClothes`，别名表在 `dist/CombatSkillsClothes.js`，覆盖 92% 的 NPC 衣物名，
+  其余退化为不加衣物），再按对方那件衣服的耐久度复制一件放进**衣柜**，并把对方那一格置为 naked。
+  掉落在绿色提示里显示、也会进战利品面板（分类「衣物」，中文名优先用汉化 mod 提供的 `cn_name`）。
 - 人类判定：本 build 里 `$NPCList[i].type` 对人类是 **`"human"`**（部分命名 NPC 可能是 `"man"`），
   所以判定同时看 `type` 与 `$enemytype`；v1.10.1 之前只认 `"man"`，导致人类敌人一直被当成野兽（只掉物品、不掉钱）。
 - 全部使用游戏原有的宏与变量，**没有新增长期存档字段**（只有本场战斗的 `.looted` 标记与 `$combatLootLog` 清单，
@@ -344,8 +349,8 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 **安装（二选一，都不改动任何游戏文件）**
 
-1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.12.1.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
-2. 网站自动加载：把 `CombatSkills_v1.12.1.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
+1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.12.2.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
+2. 网站自动加载：把 `CombatSkills_v1.12.2.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
    通过 http 访问游戏时 ModLoader 的 RemoteLoader 会自动读取 `modList.json`（`file://` 打开不生效）。
 
 **卸载**：删除 `modList.json`（或其中的条目）/ 在 ModLoader 界面移除本 mod 即可，游戏完全恢复原状
@@ -355,7 +360,7 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
-& .\build.ps1
+& .\modsrc\build.ps1
 ```
 
 脚本会：① 从 `Degrees of Lewdity.html` 提取相关段落原文；

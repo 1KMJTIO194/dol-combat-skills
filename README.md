@@ -31,6 +31,7 @@
 - 击败人类 NPC：65% 掉钱（£10~30）、30% 掉物品
 - 击败非人类 NPC：45% 掉它身上带着的东西
 - 战斗结束界面显示「战利品」面板（逐项 + 现金/赃款合计）
+- **扒衣服**：击败人类敌人时另有 **40%** 概率获得对方身上剩下的一件衣物（按耐久度放进衣柜）
 
 ### 4. 拳击俱乐部（康努达塔斯街）
 
@@ -66,12 +67,15 @@ build.ps1                    构建脚本（提取段落、断言锚点、打包
 CombatSkills/                mod 源（zip 内容）
   boot.json                  ModLoader 清单（tweeFileList / scriptFileList / addonPlugin）
   twee/CombatSkills.tw       全部 widget 与新增段落（拳击俱乐部、酒吧斗殴）
-  dist/CombatSkillsPatch.js  JS 补丁：pain 减伤、currentSkillValue 敏捷接入
+  dist/CombatSkillsPatch.js  JS 补丁：pain 减伤、currentSkillValue 敏捷接入、战利品衣物转换
+  dist/CombatSkillsClothes.js NPC 衣物名 → 玩家衣物 别名表（覆盖 92%）
   dist/js/installCombatSkillsPatch.js
   CombatSkills.css           战利品面板样式（选择器全部限定在 #combatLootSummary）
   README.md                  详细文档（中文）
 docs/发布说明.md              发布帖草稿（作者/反馈/合规说明）
 tools/decode-save.js         调试工具：解压 DoL 存档（lz-string）查看变量
+tools/check-clothes-map.js   开发工具：统计 NPC 衣物名→玩家衣物的匹配覆盖率
+tools/suggest-clothes-alias.js  开发工具：为未匹配的 NPC 衣物名推荐玩家衣物名
 ```
 
 ## 构建

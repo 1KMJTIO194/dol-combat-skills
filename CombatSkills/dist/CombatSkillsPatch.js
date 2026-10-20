@@ -159,6 +159,76 @@
 		}
 	};
 
+	/* ---- 3) 战利品：把被击败 NPC 身上剩下的衣物变成玩家可穿戴的物品 ---- */
+	var CLOTHES_SUFFIX = [" top", " bottoms", " bottom", " skirt"];
+	function clothesByName(defs, name) {
+		for (var i = 0; i < defs.length; i++) {
+			if (defs[i] && defs[i].name === name) { return defs[i]; }
+		}
+		return null;
+	}
+	function findClothesDef(slot, npcName) {
+		var S = (typeof window !== "undefined") ? window.setup : null;
+		var defs = (S && S.clothes && S.clothes[slot]) || null;
+		if (!defs || !npcName) { return null; }
+		var name = String(npcName);
+		var found = clothesByName(defs, name);
+		if (found) { return found; }
+		/* 别名表（dist/CombatSkillsClothes.js 提供，覆盖 NPC 专属名称） */
+		var aliases = (window.CombatSkills_clothesAlias || {})[slot] || {};
+		if (aliases[name]) {
+			found = clothesByName(defs, aliases[name]);
+			if (found) { return found; }
+		}
+		/* 去掉 " top" / " bottoms" / " bottom" / " skirt" 再试一次 */
+		for (var s = 0; s < CLOTHES_SUFFIX.length; s++) {
+			var suf = CLOTHES_SUFFIX[s];
+			if (name.length > suf.length && name.slice(-suf.length) === suf) {
+				found = clothesByName(defs, name.slice(0, name.length - suf.length));
+				if (found) { return found; }
+			}
+		}
+		/* 兜底：包含关系里最长的那个玩家衣物名（≥4 字符） */
+		var best = null;
+		for (var j = 0; j < defs.length; j++) {
+			var p = defs[j] && defs[j].name;
+			if (!p || p.length < 4) { continue; }
+			if (name.indexOf(p) !== -1 || p.indexOf(name) !== -1) {
+				if (!best || p.length > best.name.length) { best = defs[j]; }
+			}
+		}
+		return best;
+	}
+	function clothesLabel(item) {
+		if (!item) { return ""; }
+		return item.cn_name_cap || item.cn_name || item.name || "";
+	}
+	/* 把一个 NPC 衣物名转换成玩家衣物并放进衣柜；成功返回 { slot, name }，失败返回 null */
+	window.CombatSkills_lootClothes = function (slot, npcName, integrity) {
+		try {
+			var V = getVars();
+			if (!V) { return null; }
+			var targetSlot = (slot === "lower") ? "lower" : "upper";
+			var def = findClothesDef(targetSlot, npcName);
+			if (!def) { return null; }
+			var item = null;
+			try {
+				item = (typeof clone === "function") ? clone(def) : JSON.parse(JSON.stringify(def));
+			} catch (e) {
+				item = JSON.parse(JSON.stringify(def));
+			}
+			if (typeof integrity === "number" && typeof item.integrity_max === "number") {
+				item.integrity = Math.max(1, Math.min(integrity, item.integrity_max));
+			}
+			if (!V.wardrobe || typeof V.wardrobe !== "object") { V.wardrobe = { space: 20 }; }
+			if (!Array.isArray(V.wardrobe[targetSlot])) { V.wardrobe[targetSlot] = []; }
+			V.wardrobe[targetSlot].push(item);
+			return { slot: targetSlot, name: clothesLabel(item) };
+		} catch (e) {
+			console.error("[CombatSkills] 战利品衣物失败", e);
+			return null;
+		}
+	};
 	/* 供控制台自查 */
 	window.CombatSkills_debug = function () {
 		var V = getVars();

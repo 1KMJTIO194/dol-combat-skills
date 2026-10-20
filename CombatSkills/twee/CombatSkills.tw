@@ -210,7 +210,7 @@
 	<<characteristic-box _csCfgDefense>>
 	<<characteristic-box _csCfgAgility>>
 	<br>
-	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.12.1</span></span>
+	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.12.2</span></span>
 <</widget>>
 
 <<widget "combatStatAdd">>
@@ -291,6 +291,37 @@
    只使用游戏原本就存在的字段（额外只有本场战斗的 .looted 标记与 $combatLootLog 清单）。
    ============================================================================ */
 
+<<widget "combatLootClothes">>
+	/* 战利品：有概率获得被击败的人类 NPC 身上剩下的衣物（v1.12.2）
+	   _args[0] = NPC 下标（缺省 0）；成功后把对方那一格衣物剥掉、物品放进玩家衣柜。
+	   名称转换（NPC 简化衣物名 → 玩家可穿戴衣物）由 dist/CombatSkillsPatch.js 的
+	   window.CombatSkills_lootClothes 完成，别名表在 dist/CombatSkillsClothes.js。 */
+	<<set _clIdx to _args[0]>>
+	<<if _clIdx is undefined>><<set _clIdx to 0>><</if>>
+	<<if $NPCList[_clIdx] isnot undefined and $NPCList[_clIdx] isnot null>>
+		<<if $NPCList[_clIdx].clothes isnot undefined and $NPCList[_clIdx].clothes.upper isnot undefined and $NPCList[_clIdx].clothes.lower isnot undefined>>
+			<<set _clHasUpper to ($NPCList[_clIdx].clothes.upper.name isnot "naked")>>
+			<<set _clHasLower to ($NPCList[_clIdx].clothes.lower.name isnot "naked")>>
+			<<if (_clHasUpper or _clHasLower) and random(100) lte 40>>
+				<<if _clHasUpper and (_clHasLower is false or random(1, 2) is 1)>>
+					<<set _clSlot to "upper">>
+				<<else>>
+					<<set _clSlot to "lower">>
+				<</if>>
+				<<set _clName to $NPCList[_clIdx].clothes[_clSlot].name>>
+				<<set _clInt to $NPCList[_clIdx].clothes[_clSlot].integrity>>
+				<<set _clGot to window.CombatSkills_lootClothes(_clSlot, _clName, _clInt)>>
+				<<if _clGot>>
+					<<set $NPCList[_clIdx].clothes[_clSlot].name to "naked">>
+					<<combatLootLogAdd "衣物" _clGot.name "item" 0>>
+					<<if $combatLootInline isnot false>>
+						<br><span class="green">你从对方身上剥下一件 <<print _clGot.name>>，收进了衣柜。</span>
+					<</if>>
+				<</if>>
+			<</if>>
+		<</if>>
+	<</if>>
+<</widget>>
 <<widget "combatLootVictory">>
 	/* 战斗胜利（$enemyhealth 归零）时的战利品结算 + 结束面板。
 	   注意：<<endcombat>> 在游戏里有近 3000 处调用，很多与 NPC 战斗无关（善后/结束场景），
@@ -363,7 +394,7 @@
 	<<if _clIndex isnot undefined and typeof $NPCList is "object" and $NPCList isnot null and $NPCList[_clIndex] isnot undefined and $NPCList[_clIndex] isnot null and !$NPCList[_clIndex].looted>>
 		<<set $NPCList[_clIndex].looted to true>>
 		<<if $NPCList[_clIndex].type is "human" or $NPCList[_clIndex].type is "man" or $enemytype is "man">>
-			<<combatLootHuman _clIndex>>
+			<<combatLootHuman _clIndex>><<combatLootClothes _clIndex>>
 		<<else>>
 			<<combatLootCreature _clIndex>>
 		<</if>>

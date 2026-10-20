@@ -1,6 +1,6 @@
 {
     "name":  "CombatSkills",
-    "version":  "1.12.1",
+    "version":  "1.12.2",
     "styleFileList":  [
                           "CombatSkills.css"
                       ],
@@ -14,6 +14,7 @@
 
                                ],
     "scriptFileList":  [
+                           "dist/CombatSkillsClothes.js",
                            "dist/js/installCombatSkillsPatch.js"
                        ],
     "tweeFileList":  [
