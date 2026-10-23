@@ -349,8 +349,8 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 **安装（二选一，都不改动任何游戏文件）**
 
-1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.12.2.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
-2. 网站自动加载：把 `CombatSkills_v1.12.2.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
+1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.12.3.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
+2. 网站自动加载：把 `CombatSkills_v1.12.3.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
    通过 http 访问游戏时 ModLoader 的 RemoteLoader 会自动读取 `modList.json`（`file://` 打开不生效）。
 
 **卸载**：删除 `modList.json`（或其中的条目）/ 在 ModLoader 界面移除本 mod 即可，游戏完全恢复原状
@@ -388,3 +388,23 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 攻击力改成加算，或给每点系数换个数值（改 `build.ps1` 的对应 `replace`）。
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
+
+## 汉化兼容（v1.12.3 新增）
+
+如果汉化 mod（ModI18N / I18nTweeList / I18nScriptList / I18nTweeReplacer）**没装全或脚本加载失败**，
+游戏里会出现这种报错：
+
+```
+:: Temple Garden Wolf: <<beast>>: errors within widget code
+(<<=>>: bad evaluation: TypeError: setup.NPC_CN_TYPE is not a function)
+```
+
+原因：`setup.NPC_CN_TYPE` 是**汉化 mod 提供的函数**（原版游戏里没有），
+汉化的 `<<beast>>` widget 补丁会调用它；汉化脚本没加载时函数就不存在。
+
+v1.12.3 起本 mod 的安装脚本会做**兜底**：只在 `setup.NPC_CN_TYPE` 缺失时补一个最小实现，
+报错不再刷屏（控制台会打印一条 `[CombatSkills] ... 已临时兜底` 警告），
+汉化正常时不会覆盖真函数、中文名照常显示。
+**根治方法仍是把汉化装全/重装汉化。**
+
+## 汉化兼容（v1.12.3 新增）
