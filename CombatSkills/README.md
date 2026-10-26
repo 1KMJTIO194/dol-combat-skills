@@ -7,8 +7,8 @@
   **F12 控制台里 `[CombatSkills]` 开头的行 / 红色报错**
 - **免责声明**：非官方模组，《Degrees of Lewdity》版权归 Vrelnir 所有，请支持正版；
   本 mod 免费发布、禁止商用；转载或二创请注明作者与发布帖
-- 适配 **0.5.11.9**；不修改任何游戏文件，卸载即完全恢复原状
-DoL 0.5.11.9 的 ModLoader mod。在「特征」面板的 **武器技能下方**、**不安感上方** 增加一个
+- 适配 **0.5.12.13**（旧版本 0.5.11.9 的补丁锚点同样兼容）；不修改任何游戏文件，卸载即完全恢复原状
+DoL 0.5.12.13 的 ModLoader mod。在「特征」面板的 **武器技能下方**、**不安感上方** 增加一个
 **战斗技能** 区块，三个属性：
 
 | 属性 | 存档键 | 每档加成 | F-（0 档） | … | S（15 档） |
@@ -349,8 +349,8 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 **安装（二选一，都不改动任何游戏文件）**
 
-1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.12.3.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
-2. 网站自动加载：把 `CombatSkills_v1.12.3.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
+1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.13.0.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
+2. 网站自动加载：把 `CombatSkills_v1.13.0.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
    通过 http 访问游戏时 ModLoader 的 RemoteLoader 会自动读取 `modList.json`（`file://` 打开不生效）。
 
 **卸载**：删除 `modList.json`（或其中的条目）/ 在 ModLoader 界面移除本 mod 即可，游戏完全恢复原状
@@ -389,7 +389,7 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
 
-## 汉化兼容（v1.12.3 新增）
+## 汉化兼容（v1.13.0 新增）
 
 如果汉化 mod（ModI18N / I18nTweeList / I18nScriptList / I18nTweeReplacer）**没装全或脚本加载失败**，
 游戏里会出现这种报错：
@@ -402,9 +402,9 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 原因：`setup.NPC_CN_TYPE` 是**汉化 mod 提供的函数**（原版游戏里没有），
 汉化的 `<<beast>>` widget 补丁会调用它；汉化脚本没加载时函数就不存在。
 
-v1.12.3 起本 mod 的安装脚本会做**兜底**：只在 `setup.NPC_CN_TYPE` 缺失时补一个最小实现，
+v1.13.0 起本 mod 的安装脚本会做**兜底**：只在 `setup.NPC_CN_TYPE` 缺失时补一个最小实现，
 报错不再刷屏（控制台会打印一条 `[CombatSkills] ... 已临时兜底` 警告），
 汉化正常时不会覆盖真函数、中文名照常显示。
 **根治方法仍是把汉化装全/重装汉化。**
 
-## 汉化兼容（v1.12.3 新增）
+## 汉化兼容（v1.13.0 新增）

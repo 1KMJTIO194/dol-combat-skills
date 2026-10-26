@@ -1,5 +1,5 @@
 ﻿# ============================================================================
-#  CombatSkills mod 构建脚本（不修改任何游戏文件）
+#  CombatSkills mod 构建脚本（适配 DoL 0.5.12.13，不修改任何游戏文件）
 #  ---------------------------------------------------------------------------
 #  1) 从 Degrees of Lewdity.html 提取相关段落原文
 #  2) 断言每个插入锚点在该段落中恰好出现 1 次（游戏版本不符则中止，不产出文件）
@@ -8,19 +8,24 @@
 #  4) 打包 CombatSkills_v<ver>.zip（zip 根目录即 boot.json，条目路径用正斜杠）
 #  5) 生成/合并服务器自动加载清单 modList.json
 #  6) 输出 HTML / boot.json 的 SHA256 前后比对，证明游戏文件零改动
-#  用法： pwsh -File .\build.ps1   （PS 5.1 亦可：Set-ExecutionPolicy -Scope Process Bypass）
+#  用法： pwsh -File .\modsrc\build.ps1   （PS 5.1 亦可：Set-ExecutionPolicy -Scope Process Bypass）
 # ============================================================================
+param(
+    [string]$GameDirOverride = '',
+    [string]$OutDir = ''
+)
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.12.2'
+$Version = '1.13.0'
 $ScriptDir = $PSScriptRoot
-$GameDir   = Split-Path -Parent $ScriptDir
+$GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
+if (-not $OutDir) { $OutDir = $GameDir }
 $HtmlPath  = Join-Path $GameDir 'Degrees of Lewdity.html'
 $SrcDir    = Join-Path $ScriptDir $ModName
 $ZipName   = '{0}_v{1}.zip' -f $ModName, $Version
-$ZipPath   = Join-Path $GameDir $ZipName
-$ListPath  = Join-Path $GameDir 'modList.json'
+$ZipPath   = Join-Path $OutDir $ZipName
+$ListPath  = Join-Path $OutDir 'modList.json'
 
 function Get-Sha256([string]$Path) { (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash }
 
@@ -355,6 +360,8 @@ if (-not $tweeText.Contains("CombatSkills mod v$Version")) { throw "特征面板
 $jsInstallText = [System.IO.File]::ReadAllText((Join-Path $SrcDir 'dist\js\installCombatSkillsPatch.js'), [System.Text.Encoding]::UTF8)
 if (-not $jsInstallText.Contains("CS_VERSION = " + [char]34 + $Version + [char]34)) { throw "安装脚本里的 CS_VERSION 与 $Version 不一致" }
 Write-Host "      版本一致性自检通过（面板 / 安装脚本 = v$Version）✓"
+if ($jsInstallText -notmatch 'setup\.NPC_CN_TYPE') { throw '安装脚本缺少汉化兜底垫片（setup.NPC_CN_TYPE）' }
+Write-Host '      汉化兜底垫片自检通过（汉化缺 setup.NPC_CN_TYPE 时不再报错）✓'
 
 # ---- TwineScript 运算符校验：SugarCube 只认 lt/lte/gt/gte/eq/neq，写 le/ge/ne 会在运行时抛 SyntaxError ----
 $badOps = @([regex]::Matches($tweeText, '(?m)<<(?:if|elseif|unless)[^>]*?\b(le|ge|ne)\b'))
@@ -565,13 +572,16 @@ $entryNames | ForEach-Object { Write-Host "        - $_" }
 # 升级时先清掉本 mod 的旧条目与旧安装包，避免 modList.json 越堆越多
 Write-Host '[5/6] 更新 modList.json ...'
 $entry = './' + $ZipName
-foreach ($old in (Get-ChildItem -LiteralPath $GameDir -File -Filter ($ModName + '_v*.zip') -ErrorAction SilentlyContinue)) {
+foreach ($old in (Get-ChildItem -LiteralPath $OutDir -File -Filter ($ModName + '_v*.zip') -ErrorAction SilentlyContinue)) {
     if ($old.Name -ne $ZipName) { Remove-Item -LiteralPath $old.FullName -Force; Write-Host ("      清理旧安装包：{0}" -f $old.Name) }
 }
 $list = @()
 if (Test-Path -LiteralPath $ListPath) {
-    try { $list = @(Get-Content -LiteralPath $ListPath -Raw -Encoding UTF8 | ConvertFrom-Json) } catch { $list = @() }
-    $list = @($list | Where-Object { $_ -is [string] })
+    try {
+    $parsed = Get-Content -LiteralPath $ListPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($parsed -is [System.Array]) { foreach ($it in $parsed) { if ($it -is [string]) { $list += $it } } }
+    elseif ($parsed -is [string]) { $list += $parsed }
+} catch { $list = @() }
 }
 $list = @($list | Where-Object { $_ -notmatch ('^\./' + [regex]::Escape($ModName) + '_v.*\.zip$') })
 $list += $entry

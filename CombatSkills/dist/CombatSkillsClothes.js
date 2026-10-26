@@ -14,7 +14,7 @@ window.CombatSkills_clothesAlias = {
 		"shirt": "school shirt",
 		"school blazer": "shirt and blazer",
 		"teacher's uniform": "blouse",
-		"school swimsuit top": "swim shirt",
+		"school swimsuit top": "t-shirt",
 		"hi-vis jacket": "utility vest",
 		"denim shirt": "checkered shirt",
 		"vest": "utility vest",

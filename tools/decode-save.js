@@ -5,7 +5,7 @@
 "use strict";
 const fs = require("fs");
 
-const htmlPath = process.argv[2] || "Degrees of Lewdity.html";
+const htmlPath = process.argv[2] || "F:\\omgd\\网站\\DOL\\Degrees of Lewdity.html";
 const savePath = process.argv[3];
 const outPath = process.argv[4];
 

@@ -210,7 +210,7 @@
 	<<characteristic-box _csCfgDefense>>
 	<<characteristic-box _csCfgAgility>>
 	<br>
-	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.12.3</span></span>
+	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.13.0</span></span>
 <</widget>>
 
 <<widget "combatStatAdd">>
