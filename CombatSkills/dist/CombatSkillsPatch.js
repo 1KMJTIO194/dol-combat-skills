@@ -230,6 +230,62 @@
 		}
 	};
 	/* 供控制台自查 */
+	/* ---- 3) 特征面板 JS 兜底注入 ----
+	 * 某些环境（汉化 / 原版优化 / Maplebirch 等改动过 Characteristics 段落）会让
+	 * TweeReplacer 的界面锚点失效，导致「战斗技能」整栏消失。
+	 * 这里在每次 Characteristics 渲染后检查 #combatSkills；没有就自己插到 #prof 后面。
+	 * 正常环境（补丁成功）不会重复插入，只做一次存在性检查。
+	 */
+	function installPanelFallback() {
+		var tries = 0;
+		function tryHook() {
+			try {
+				var $ = window.jQuery || window.$;
+				if (typeof $ !== "function") { return false; }
+				$(window.document).off(":passageend.caePanel").on(":passageend.caePanel", function () {
+					try {
+						if (typeof State === "undefined" || State.passage !== "Characteristics") { return; }
+						var doc = window.document;
+						if (doc.getElementById("combatSkills")) { return; }
+						var prof = doc.getElementById("prof");
+						var host = prof || doc.getElementById("characteristics-display");
+						if (!host) { return; }
+						var wrap = doc.createElement("div");
+						var br = doc.createElement("br");
+						var heading = doc.createElement("span");
+						heading.className = "gold";
+						heading.textContent = "战斗技能";
+						var list = doc.createElement("div");
+						list.id = "combatSkills";
+						list.className = "characteristic-box-list";
+						wrap.appendChild(br);
+						wrap.appendChild(heading);
+						wrap.appendChild(list);
+						if (prof) { prof.insertAdjacentElement("afterend", wrap); } else { host.appendChild(wrap); }
+						try {
+							if (window.Wikifier && typeof window.Wikifier.wikifyEval === "function") {
+								$(list).append(window.Wikifier.wikifyEval("<<combatStatBoxes>>"));
+							}
+						} catch (e) {
+							console.error("[CombatSkills] 面板内容渲染失败", e);
+						}
+						console.log("[CombatSkills] 界面锚点失效，已用 JS 兜底注入「战斗技能」面板");
+					} catch (e) {
+						console.error("[CombatSkills] JS 兜底注入失败", e);
+					}
+				});
+				return true;
+			} catch (e) {
+				return false;
+			}
+		}
+		if (tryHook()) { return; }
+		var timer = setInterval(function () {
+			tries++;
+			if (tryHook() || tries > 60) { clearInterval(timer); }
+		}, 500);
+	}
+	installPanelFallback();
 	window.CombatSkills_debug = function () {
 		var V = getVars();
 		var d = bonusOf("defense");

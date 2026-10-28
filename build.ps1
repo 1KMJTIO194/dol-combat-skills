@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.13.0'
+$Version = '1.13.1'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -122,10 +122,10 @@ $patchSpecs = @(
     [ordered]@{
         name    = '击败 NPC → 战利品掉落（多敌人）'
         passage = 'Widgets NPC Damage'
-        find    = '<span class="blue"><<combatPerson>> staggers back, defeated.</span>'
-        insert  = '<<combatLootDrop _i>>'
+        find    = '<<widget "defeatnpc">>'
+        insert  = '<<if _args[0] isnot undefined>><<combatLootDrop _args[0]>><</if>>'
         mode    = 'after'
-        note    = 'defeatnpc 内的掉落（注意：defeatnpc 只在 $enemyno gte 2 时被调用）'
+        note    = 'defeatnpc 内的掉落；锚点用纯代码 widget 头，避免被汉化/优化 mod 改文本'
     }
     [ordered]@{
         name    = '战斗胜利 → 战利品掉落（1v1）'
@@ -432,6 +432,8 @@ if ($nodeExe) {
     Write-Host '      [警告] 未找到 node，跳过 JS 语法检查' -ForegroundColor Yellow
 }
 $jsText = [System.IO.File]::ReadAllText($jsPatchPath, [System.Text.Encoding]::UTF8)
+if ($jsText -notmatch 'installPanelFallback') { throw 'CombatSkillsPatch.js 缺少特征面板 JS 兜底注入（installPanelFallback）' }
+Write-Host '      特征面板 JS 兜底自检通过（TweeReplacer 锚点失效时仍能显示战斗技能栏）✓'
 $mTiers = [regex]::Match($jsText, 'var TIERS = \[([^\]]+)\]')
 if (-not $mTiers.Success) { throw 'CombatSkillsPatch.js 里找不到 TIERS 档位表' }
 $jsTiers = @(($mTiers.Groups[1].Value -split ',') | ForEach-Object { [int]$_.Trim() })

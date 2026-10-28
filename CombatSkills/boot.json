@@ -1,6 +1,6 @@
 {
     "name":  "CombatSkills",
-    "version":  "1.13.0",
+    "version":  "1.13.1",
     "styleFileList":  [
                           "CombatSkills.css"
                       ],
@@ -79,8 +79,8 @@
                                            },
                                            {
                                                "passage":  "Widgets NPC Damage",
-                                               "findString":  "\u003cspan class=\"blue\"\u003e\u003c\u003ccombatPerson\u003e\u003e staggers back, defeated.\u003c/span\u003e",
-                                               "replace":  "\u003cspan class=\"blue\"\u003e\u003c\u003ccombatPerson\u003e\u003e staggers back, defeated.\u003c/span\u003e\u003c\u003ccombatLootDrop _i\u003e\u003e",
+                                               "findString":  "\u003c\u003cwidget \"defeatnpc\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"defeatnpc\"\u003e\u003e\u003c\u003cif _args[0] isnot undefined\u003e\u003e\u003c\u003ccombatLootDrop _args[0]\u003e\u003e\u003c\u003c/if\u003e\u003e",
                                                "all":  false,
                                                "debug":  true
                                            },

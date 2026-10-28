@@ -349,8 +349,8 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 **安装（二选一，都不改动任何游戏文件）**
 
-1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.13.0.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
-2. 网站自动加载：把 `CombatSkills_v1.13.0.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
+1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.13.1.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
+2. 网站自动加载：把 `CombatSkills_v1.13.1.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
    通过 http 访问游戏时 ModLoader 的 RemoteLoader 会自动读取 `modList.json`（`file://` 打开不生效）。
 
 **卸载**：删除 `modList.json`（或其中的条目）/ 在 ModLoader 界面移除本 mod 即可，游戏完全恢复原状
@@ -389,7 +389,26 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
 
-## 汉化兼容（v1.13.0 新增）
+## 兼容性：特征面板消失 / TweeReplacer 报 cannot find findString（v1.13.1 修复）
+
+某些 mod（「原版优化」「Maplebirch Framework」或改动界面的整合包）会改写 `Characteristics`
+或战斗文本段落，导致本 mod 的段落锚点对不上，后果是：
+
+- 「特征」页面里的**整个战斗技能栏消失**（界面插入补丁失败）
+- 多敌人击败时**不掉战利品**（战利品插入补丁失败）
+
+v1.13.1 起：
+
+1. **战利品锚点改为纯代码** `<<widget "defeatnpc">>`，不再依赖英文战斗文本
+2. **特征面板增加 JS 兜底注入**：即使 TweeReplacer 的界面锚点失效，打开「特征」页面时
+   也会把「战斗技能」区块插入到武器技能（`#prof`）下方，并在控制台打印
+   `[CombatSkills] 界面锚点失效，已用 JS 兜底注入「战斗技能」面板`
+3. 如果加载日志里仍有一条 Characteristics 的 `cannot find findString`，**可以忽略**：
+   功能已由 JS 兜底接管（正常环境不会触发兜底，也不会有这条日志）
+
+排查：控制台执行 `CombatSkills_debug()` 应能看到 `combatSkills` / `combatBonus` 数据。
+
+## 汉化兼容（v1.12.3 起；v1.13.1 增强）
 
 如果汉化 mod（ModI18N / I18nTweeList / I18nScriptList / I18nTweeReplacer）**没装全或脚本加载失败**，
 游戏里会出现这种报错：
@@ -402,9 +421,8 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 原因：`setup.NPC_CN_TYPE` 是**汉化 mod 提供的函数**（原版游戏里没有），
 汉化的 `<<beast>>` widget 补丁会调用它；汉化脚本没加载时函数就不存在。
 
-v1.13.0 起本 mod 的安装脚本会做**兜底**：只在 `setup.NPC_CN_TYPE` 缺失时补一个最小实现，
+v1.13.1 起本 mod 的安装脚本会做**兜底**：只在 `setup.NPC_CN_TYPE` 缺失时补一个最小实现，
 报错不再刷屏（控制台会打印一条 `[CombatSkills] ... 已临时兜底` 警告），
 汉化正常时不会覆盖真函数、中文名照常显示。
 **根治方法仍是把汉化装全/重装汉化。**
 
-## 汉化兼容（v1.13.0 新增）

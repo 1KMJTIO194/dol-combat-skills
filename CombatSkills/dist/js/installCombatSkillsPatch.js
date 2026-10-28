@@ -1,11 +1,11 @@
 /* ============================================================================
- * CombatSkills mod v1.13.0 ― 安装脚本（ModLoader 的 scriptFileList）
+ * CombatSkills mod v1.13.1 ― 安装脚本（ModLoader 的 scriptFileList）
  * 由 dist/CombatSkillsPatch.js 提供 window.CombatSkills_patch，
  * 这里把 SugarCube 的 Macro 交给它（与 DoLLinkButtonFilter 的做法一致）。
  * 版本号会在控制台打印，方便确认浏览器实际加载的是哪一版（排错用）。
  * ==========================================================================*/
 (function () {
-	var CS_VERSION = "1.13.0";
+	var CS_VERSION = "1.13.1";
 	try {
 		var MacroRef = (typeof Macro !== "undefined" && Macro) || (typeof window !== "undefined" && window.Macro) || null;
 		if (!MacroRef) {
