@@ -1,6 +1,6 @@
 {
     "name":  "CombatSkills",
-    "version":  "1.13.1",
+    "version":  "1.13.2",
     "styleFileList":  [
                           "CombatSkills.css"
                       ],
@@ -35,13 +35,6 @@
                             "addonName":  "TweeReplacerAddon",
                             "modVersion":  "^1.7.0",
                             "params":  [
-                                           {
-                                               "passage":  "Characteristics",
-                                               "findString":  "\u003c\u003cif $prof.pickaxe isnot undefined\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _pickaxeConfig\u003e\u003e\n\t\t\t\u003c\u003celse\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _hiddenConfig\u003e\u003e\n\t\t\t\u003c\u003c/if\u003e\u003e*/\n\t\t\u003c/div\u003e\n\t\u003c/div\u003e",
-                                               "replace":  "\u003c\u003cif $prof.pickaxe isnot undefined\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _pickaxeConfig\u003e\u003e\n\t\t\t\u003c\u003celse\u003e\u003e\n\t\t\t\t\u003c\u003ccharacteristic-box _hiddenConfig\u003e\u003e\n\t\t\t\u003c\u003c/if\u003e\u003e*/\n\t\t\u003c/div\u003e\n\t\u003c/div\u003e\n\t\u003cbr\u003e\n\t\u003cspan class=\"gold\"\u003e战斗技能\u003c/span\u003e\n\t\u003cdiv id=\"combatSkills\" class=\"characteristic-box-list\"\u003e\n\t\t\u003c\u003ccombatStatBoxes\u003e\u003e\n\t\u003c/div\u003e\n",
-                                               "all":  false,
-                                               "debug":  true
-                                           },
                                            {
                                                "passage":  "Widgets",
                                                "findString":  "\u003c\u003cset _defiance to (_args[0] * (1 + ($sadism / 1000)))\u003e\u003e",

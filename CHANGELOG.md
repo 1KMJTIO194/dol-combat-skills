@@ -1,5 +1,13 @@
 # 更新日志
 
+## v1.13.2
+
+- 特征面板改为**运行期 JS 注入**：监听特征覆盖层（`#customOverlayContent`）渲染，
+  把「战斗技能」插到武器技能（`#prof`）之后；**TweeReplacer 不再包含界面锚点**
+  → 任何环境（汉化 / 原版优化 / Maplebirch / 整合包）都不会再有
+  `[TweeReplacer] cannot find findString` 报错，面板也不会整栏消失
+- TweeReplacer 参数从 14 条降为 13 条（干净环境与模拟整合包环境均为 ok13/error0）
+- 战利品（多敌人）锚点保持纯代码 `<<widget "defeatnpc">>`（v1.13.1 起）
 ## v1.13.1
 
 - 修复：部分 mod（原版优化 / Maplebirch 等改写段落的整合包）环境下

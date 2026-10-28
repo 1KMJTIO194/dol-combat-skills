@@ -230,63 +230,78 @@
 		}
 	};
 	/* 供控制台自查 */
-	/* ---- 3) 特征面板 JS 兜底注入 ----
-	 * 某些环境（汉化 / 原版优化 / Maplebirch 等改动过 Characteristics 段落）会让
-	 * TweeReplacer 的界面锚点失效，导致「战斗技能」整栏消失。
-	 * 这里在每次 Characteristics 渲染后检查 #combatSkills；没有就自己插到 #prof 后面。
-	 * 正常环境（补丁成功）不会重复插入，只做一次存在性检查。
+		/* ---- 3) 特征面板：运行期 JS 注入（v1.13.2 起；不再使用 TweeReplacer 界面锚点）
+	 * 特征页面是覆盖层：overlayReplace widget 里用 <<replace #customOverlayContent>><<characteristics>><</replace>>
+	 * 渲染，因此用 MutationObserver 监听 #customOverlayContent 的内容替换，
+	 * 在武器技能（#prof）之后插入「战斗技能」区块。
+	 * 好处：任何环境（汉化/原版优化/Maplebirch/整合包改写段落）都不会再有
+	 *       TweeReplacer 的 cannot find findString 报错，也不会整栏消失。
 	 */
-	function installPanelFallback() {
-		var tries = 0;
-		function tryHook() {
+	function installCombatSkillsPanel() {
+		function injectPanel() {
+			try {
+				var doc = window.document;
+				var content = doc.getElementById("customOverlayContent");
+				if (!content) { return; }
+				if (content.querySelector("#combatSkills")) { return; }   /* 本次渲染已注入 */
+				var prof = content.querySelector("#prof");
+				if (!prof) { return; }   /* 当前覆盖层不是「特征」页 */
+				var wrap = doc.createElement("div");
+				var br = doc.createElement("br");
+				var heading = doc.createElement("span");
+				heading.className = "gold";
+				heading.textContent = "战斗技能";
+				var list = doc.createElement("div");
+				list.id = "combatSkills";
+				list.className = "characteristic-box-list";
+				wrap.appendChild(br);
+				wrap.appendChild(heading);
+				wrap.appendChild(list);
+				prof.insertAdjacentElement("afterend", wrap);
+				if (window.Wikifier && typeof window.Wikifier.wikifyEval === "function") {
+					window.jQuery(list).append(window.Wikifier.wikifyEval("<<combatStatBoxes>>"));
+				}
+				console.log("[CombatSkills] 已注入「战斗技能」面板（JS / 特征覆盖层）");
+			} catch (e) {
+				console.error("[CombatSkills] 特征面板注入失败", e);
+			}
+		}
+		var observer = null;
+		function ensureObserver() {
+			var content = window.document.getElementById("customOverlayContent");
+			if (!content) { return; }
+			if (observer && observer.__caeTarget === content) { return; }
+			if (observer) { try { observer.disconnect(); } catch (e) {} }
+			if (typeof window.MutationObserver !== "function") { return; }
+			observer = new window.MutationObserver(function () { window.setTimeout(injectPanel, 0); });
+			observer.__caeTarget = content;
+			observer.observe(content, { childList: true, subtree: true });
+		}
+		function tick() {
+			ensureObserver();
+			injectPanel();
+		}
+		function hook() {
 			try {
 				var $ = window.jQuery || window.$;
 				if (typeof $ !== "function") { return false; }
-				$(window.document).off(":passageend.caePanel").on(":passageend.caePanel", function () {
-					try {
-						if (typeof State === "undefined" || State.passage !== "Characteristics") { return; }
-						var doc = window.document;
-						if (doc.getElementById("combatSkills")) { return; }
-						var prof = doc.getElementById("prof");
-						var host = prof || doc.getElementById("characteristics-display");
-						if (!host) { return; }
-						var wrap = doc.createElement("div");
-						var br = doc.createElement("br");
-						var heading = doc.createElement("span");
-						heading.className = "gold";
-						heading.textContent = "战斗技能";
-						var list = doc.createElement("div");
-						list.id = "combatSkills";
-						list.className = "characteristic-box-list";
-						wrap.appendChild(br);
-						wrap.appendChild(heading);
-						wrap.appendChild(list);
-						if (prof) { prof.insertAdjacentElement("afterend", wrap); } else { host.appendChild(wrap); }
-						try {
-							if (window.Wikifier && typeof window.Wikifier.wikifyEval === "function") {
-								$(list).append(window.Wikifier.wikifyEval("<<combatStatBoxes>>"));
-							}
-						} catch (e) {
-							console.error("[CombatSkills] 面板内容渲染失败", e);
-						}
-						console.log("[CombatSkills] 界面锚点失效，已用 JS 兜底注入「战斗技能」面板");
-					} catch (e) {
-						console.error("[CombatSkills] JS 兜底注入失败", e);
-					}
-				});
+				/* 每次段落渲染后重新挂观察器：customOverlayContent 在 PassageFooter 里，会随页面重建 */
+				$(window.document).off(":passageend.caePanel").on(":passageend.caePanel", tick);
+				tick();
 				return true;
 			} catch (e) {
 				return false;
 			}
 		}
-		if (tryHook()) { return; }
+		if (hook()) { return; }
+		var tries = 0;
 		var timer = setInterval(function () {
 			tries++;
-			if (tryHook() || tries > 60) { clearInterval(timer); }
+			if (hook() || tries > 60) { clearInterval(timer); }
 		}, 500);
 	}
-	installPanelFallback();
-	window.CombatSkills_debug = function () {
+	installCombatSkillsPanel();
+window.CombatSkills_debug = function () {
 		var V = getVars();
 		var d = bonusOf("defense");
 		return {

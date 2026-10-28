@@ -3,7 +3,7 @@
 #  ---------------------------------------------------------------------------
 #  1) 从 Degrees of Lewdity.html 提取相关段落原文
 #  2) 断言每个插入锚点在该段落中恰好出现 1 次（游戏版本不符则中止，不产出文件）
-#  3) 生成 mod 的 boot.json（1 处界面插入 + 9 处战斗/地点补丁，全部走 TweeReplacer）
+#  3) 生成 mod 的 boot.json（13 处战斗/地点补丁走 TweeReplacer；特征面板改由 JS 运行期注入）
 #     另校验 mod 自带的两个 JS 补丁（防御力减伤 / 敏捷接入 currentSkillValue）与 CSS 面板样式
 #  4) 打包 CombatSkills_v<ver>.zip（zip 根目录即 boot.json，条目路径用正斜杠）
 #  5) 生成/合并服务器自动加载清单 modList.json
@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.13.1'
+$Version = '1.13.2'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -55,23 +55,13 @@ function Get-Passage([string]$Name) {
     return $body
 }
 
-# ---- 1) 特征面板：插入「战斗技能」区块（锚点从段落里提取，避免手抄出错）----
+# ---- 1) 特征面板：v1.13.2 起改由 JS 运行期注入（不再使用 TweeReplacer 界面锚点）----
+#   特征页是覆盖层（#customOverlayContent），整合包改写 Characteristics 段落时锚点会失效、
+#   整个战斗技能栏消失；现在由 dist/CombatSkillsPatch.js 在渲染后插到 #prof（武器技能）之后。
 $passage = Get-Passage 'Characteristics'
 if ($passage -notmatch '<div id="prof"') { throw 'Characteristics 段落里没有 #prof（武器技能）区块，已中止' }
-$anchorStartMarker = '<<if $prof.pickaxe isnot undefined>>'      # 单引号：$prof 不做变量展开
-$anchorEndMarker   = "<</if>>*/`n`t`t</div>`n`t</div>"
-$anchorStart = $passage.IndexOf($anchorStartMarker)
-if ($anchorStart -lt 0) { throw "锚点起始未找到：$anchorStartMarker" }
-$anchorEnd = $passage.IndexOf($anchorEndMarker, $anchorStart)
-if ($anchorEnd -lt 0) { throw '锚点结束标记未找到（#prof 与 #characteristics-display 的闭合标签）' }
-$anchorEnd += $anchorEndMarker.Length
-$anchor = $passage.Substring($anchorStart, $anchorEnd - $anchorStart)
-if (([regex]::Matches($passage, [regex]::Escape($anchor))).Count -ne 1) { throw '界面插入锚点在 Characteristics 段落中不唯一，已中止' }
-
-$insert = [System.IO.File]::ReadAllText((Join-Path $ScriptDir 'insert.fragment.tw'), [System.Text.Encoding]::UTF8)
-$insert = ($insert -replace "`r`n", "`n")
-if ($insert.StartsWith("`n")) { $insert = $insert.Substring(1) }
-Write-Host ("      Characteristics 段落 {0} 字符；界面锚点 {1} 字符，唯一 ✓" -f $passage.Length, $anchor.Length)
+if ($passage -notmatch '<<widget "characteristics">>') { throw 'Characteristics 段落里没有 characteristics widget，已中止' }
+Write-Host '      特征面板改为 JS 运行期注入（TweeReplacer 不再包含界面锚点）✓'
 
 # ---- 2) 战斗成长补丁（全部为代码/注释锚点，不含英文文本，不受汉化影响）----
 #  mode = after            在 findString 之后插入
@@ -241,14 +231,9 @@ foreach ($spec in $patchSpecs) {
     Write-Host ("      [{0}] 段落 [{1}] 锚点唯一 ✓  {2}" -f $spec.name, $spec.passage, $spec.note)
 }
 
-# 界面插入作为第一条替换参数
-$allParams = @([ordered]@{
-    passage    = 'Characteristics'
-    findString = $anchor
-    replace    = ($anchor + "`n" + $insert)
-    all        = $false
-    debug      = $true
-}) + $patchParams
+# 特征面板不再走 TweeReplacer（v1.13.2 起由 JS 运行期注入），全部参数都是战斗/地点补丁
+$allParams = $patchParams
+if (@($allParams | Where-Object { $_.passage -eq 'Characteristics' }).Count -gt 0) { throw 'boot.json 里不应再有 Characteristics 参数（面板已改由 JS 注入）' }
 
 # ---- 校验 mod 的 twee 文件能被 ModLoader 解析 ----
 $tweePath = Join-Path $SrcDir 'twee\CombatSkills.tw'
@@ -432,8 +417,8 @@ if ($nodeExe) {
     Write-Host '      [警告] 未找到 node，跳过 JS 语法检查' -ForegroundColor Yellow
 }
 $jsText = [System.IO.File]::ReadAllText($jsPatchPath, [System.Text.Encoding]::UTF8)
-if ($jsText -notmatch 'installPanelFallback') { throw 'CombatSkillsPatch.js 缺少特征面板 JS 兜底注入（installPanelFallback）' }
-Write-Host '      特征面板 JS 兜底自检通过（TweeReplacer 锚点失效时仍能显示战斗技能栏）✓'
+if ($jsText -notmatch 'installCombatSkillsPanel') { throw 'CombatSkillsPatch.js 缺少特征面板 JS 注入（installCombatSkillsPanel）' }
+Write-Host '      特征面板 JS 注入自检通过（运行期插到 #prof 之后，不依赖 TweeReplacer 锚点）✓'
 $mTiers = [regex]::Match($jsText, 'var TIERS = \[([^\]]+)\]')
 if (-not $mTiers.Success) { throw 'CombatSkillsPatch.js 里找不到 TIERS 档位表' }
 $jsTiers = @(($mTiers.Groups[1].Value -split ',') | ForEach-Object { [int]$_.Trim() })
@@ -537,7 +522,7 @@ $bootPath = Join-Path $SrcDir 'boot.json'
 [System.IO.File]::WriteAllText($bootPath, $bootJson, (New-Object System.Text.UTF8Encoding($false)))
 $chk = Get-Content -LiteralPath $bootPath -Raw -Encoding UTF8 | ConvertFrom-Json
 if ($chk.name -ne $ModName -or $chk.addonPlugin[0].params.Count -ne $allParams.Count) { throw 'boot.json 回读校验失败' }
-if ($chk.addonPlugin[0].params[0].findString -ne $anchor) { throw 'boot.json 中的界面锚点与提取结果不一致' }
+# （v1.13.2 起界面插入由 JS 完成，boot.json 里不再有 Characteristics 参数）
 Write-Host ("      boot.json {0} 字节，{1} 条替换参数  ✓" -f (Get-Item $bootPath).Length, $allParams.Count)
 
 # ---- 4) 打包 zip ----
@@ -608,7 +593,7 @@ Write-Host '构建完成：' -ForegroundColor Green
 Write-Host ("  mod 源目录 : {0}" -f $SrcDir)
 Write-Host ("  安装包     : {0}" -f $ZipPath)
 Write-Host ("  自动加载表 : {0}" -f $ListPath)
-Write-Host ("  替换参数   : {0} 条（1 界面 + {1} 战斗/成长）" -f $allParams.Count, $patchSpecs.Count)
+Write-Host ("  替换参数   : {0} 条（全部为战斗/成长/地点补丁；特征面板由 JS 运行期注入）" -f $allParams.Count)
 Write-Host '  数值效果   : 攻击力 每点 +1% 伤害 ／ 防御力 每点 -1% 受伤（上限 -90%）／ 敏捷 直接计入 舞蹈·运动·游泳·足部 判定'
 Write-Host '  战利品     : 人类 NPC 65% 掉钱(£10~30) + 30% 掉物品 ／ 非人类 NPC 45% 掉身上的物品'
 Write-Host '               战斗结束界面显示「战利品」汇总面板（含现金/赃款合计）'
