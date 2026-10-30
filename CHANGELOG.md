@@ -1,5 +1,22 @@
 # 更新日志
 
+## 2026-10-30 合集更新：新增 CombatActionsExt v0.9.2 与 LocationsExt v1.7.0
+
+- **新增 CombatActionsExt v0.9.2**（NSFW，可单独安装）：战斗中性行为扩展
+  - 咬（人类战、嘴自由时必定命中）、脱掉上衣/下衣（原版 Undress 判定）、揉捏胸部、
+    插入小穴→继续指奸→拳交、手指插入→继续指奸→拳交、脚揉胸部/脚趾插入、敌人高潮选择
+  - v0.9.1 / v0.9.2 修复：野兽战与多目标战的 `$NPCList` 空条目保护、调度器仅人类战斗执行，
+    不再出现 `Cannot read properties of undefined (reading 'vagina')`
+- **新增 LocationsExt v1.7.0**：地点扩展
+  - 旅店（High Street → Alternate routes）：£40/天，当天自由进出，隔天需重新付钱，
+    没付房钱上楼会被店员拦住要钱（贝利式），掏不出钱被赶回前台（+压力）
+  - 旅店二楼房间参考孤儿院卧室/浴室：睡下、浴室 (0:01)（泡澡 0:30 / 冲澡 0:10 / 原版 personalUpkeep / 妊娠检测）、下楼 (0:01)
+  - 公寓可购买房间（Flats，£62000）：睡觉、衣柜（自定义退出回房间）、床垫/淋浴间/书架升级
+  - 森林快速旅行：按「5 点深度 = 5 分钟」步数计时，运动技能缩短每步耗时；只列森林内目的地，
+    森林外只保留「快速返回森林之外（Danube Street）」
+- CombatSkills 保持 **v1.13.2**（本次未改动）
+- 仓库新增 `build-actions.ps1` / `build-locations.ps1`，三个 mod 可分别单独构建
+
 ## v1.13.2
 
 - 特征面板改为**运行期 JS 注入**：监听特征覆盖层（`#customOverlayContent`）渲染，

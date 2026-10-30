@@ -1,0 +1,283 @@
+:: Inn
+<<set $outside to 0>>
+<<effects>>
+旅店门内挂着昏黄的灯，前台后面站着一位打着哈欠的店员。柜台上的木牌写着：单间（带浴室），每晚 £40。
+<<set $caeInnToday to Time.date.year + "-" + Time.date.month + "-" + Time.date.day>>
+<<set $caeInnPaidToday to ($caeInnPaidDate is $caeInnToday)>>
+<br><br>
+<<if $caeInnPaidToday>>
+	<span class="blue">你今天已经付过房钱，可以自由进出楼上的房间。</span><br>
+	<<link [[上楼回房间（0:01）|Inn Room]]>><<pass 1>><</link>><br>
+<<elseif $money gte 4000>>
+	<<link [[租一间房过夜（£40）|Inn Room]]>><<money -4000>><<set $caeInnStays to ($caeInnStays or 0) + 1>><<set $caeInnPaidDate to $caeInnToday>><</link>><br>
+	<<link [[试着直接上楼|Inn Stairs]]>><</link>><br>
+<<else>>
+	<span class="red">你身上的钱不够付房钱。</span><br>
+	<<link [[试着直接上楼|Inn Stairs]]>><</link>><br>
+<</if>>
+<br>
+<<if $caeInnPaidToday>>
+	<<link [[使用淋浴间（租客免费）|Inn Shower]]>><</link>>
+<<elseif $money gte 500>>
+	<<link [[去淋浴间洗个澡（£5）|Inn Shower]]>><<money -500>><</link>>
+<<else>>
+	<span class="red">你连洗澡的 £5 都拿不出来。</span>
+<</if>>
+<br><br>
+<<link [[离开旅店|High Street]]>><</link>>
+
+:: Inn Stairs
+<<set $outside to 0>>
+<<effects>>
+<<set $caeInnToday to Time.date.year + "-" + Time.date.month + "-" + Time.date.day>>
+<<set $caeInnPaidToday to ($caeInnPaidDate is $caeInnToday)>>
+楼梯口，一个壮实的店员横过身挡住你的去路。"没交今天的房钱，可不能让你上去。"他摊开手掌。
+<br><br>
+<<if $caeInnPaidToday>>
+	<span class="blue">他认出是你，侧身让开了路。</span><br>
+	<<link [[上楼回房间（0:01）|Inn Room]]>><<pass 1>><</link>><br>
+<<elseif $money gte 4000>>
+	<<link [[交 £40 上楼|Inn Room]]>><<money -4000>><<set $caeInnStays to ($caeInnStays or 0) + 1>><<set $caeInnPaidDate to $caeInnToday>><<pass 1>><</link>><br>
+	<<link [[不交，转身下楼|Inn]]>><</link>><br>
+<<else>>
+	<span class="red">你掏不出钱，被他推搡着赶回前台。</span><br>
+	<<link [[被赶回前台|Inn]]>><<stress 5>><</link>><br>
+<</if>>
+<br>
+<<link [[离开旅店|High Street]]>><</link>>
+:: Inn Sleep
+<<sleep>>
+<<effects>>
+<<wakingEffects $sleepHoursTotal>>
+你睡得还算安稳，楼下的街道声一直没停，但至少有一张干净的床。
+<br><br>
+<<bedicon>><<link [[起床|Inn Room]]>><</link>>
+<br>
+<<dooricon "open">><<link [[下楼，退房离开|Inn]]>><</link>>
+
+:: Inn Shower
+<<set $outside to 0>>
+<<effects>>
+热水很快充满了小小的淋浴间，水汽糊住了镜子。你把一路的风尘都冲干净了。<<wash>>
+<br><br>
+<<link [[擦干，回到前台|Inn]]>><</link>>
+
+:: Inn Room
+<<set $outside to 0>>
+<<effects>>
+旅店二楼尽头的小房间，床铺得很整齐，窗帘洗得发白。门后挂着一把小小的钥匙。
+<br><br>
+<<bedicon>><<link [[睡下|Inn Sleep]]>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[浴室 (0:01)|Inn Bathroom]]>><<pass 1>><</link>>
+<br>
+<<dooricon "open">><<link [[下楼 (0:01)|Inn]]>><<pass 1>><</link>>
+
+:: Inn Bathroom
+<<set $outside to 0>>
+<<effects>>
+浴室很小，但瓷砖擦得干净，水龙头滴着热水。
+<br><br>
+<<bathroomicon "bath">><<link [[泡个澡 (0:30)|Inn Bath]]>><<strip>><<pass 30>><<stress -6>><<set $hygiene to 0>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[冲个澡 (0:10)|Inn Bathroom]]>><<pass 10>><<wash>><<set $caeInnShowered to 1>><</link>>
+<<if $caeInnShowered is 1>><<unset $caeInnShowered>><br><span class="blue">你冲了个热水澡，浑身清爽。</span><</if>>
+<br><br>
+<<personalUpkeep>>
+<<pregnancyTest "Inn Bathroom">>
+<br>
+<<bedicon>><<link [[卧室 (0:01)|Inn Room]]>><<pass 1>><</link>>
+<br>
+<<dooricon "open">><<link [[下楼 (0:01)|Inn]]>><<pass 1>><</link>>
+
+:: Inn Bath
+<<set $outside to 0>>
+<<effects>>
+你把自己泡进热水里，水汽糊住了镜子。一天的疲惫慢慢化开。<<wash>>
+<br><br>
+<<getouticon>><<link [[起身，回房间|Inn Room]]>><</link>>
+<br>
+<<bathroomicon "shower">><<link [[回浴室|Inn Bathroom]]>><</link>>
+:: Flats Room Sale
+<<set $outside to 0>>
+<<effects>>
+<<if $caeFlatsRoom is 1>>
+	这间房已经是你的了，门上的钥匙牌换成了你的名字。
+	<br><br>
+	<<link [[进去看看|Flats Own Room]]>><</link>>
+<<else>>
+	管理员带你看了走廊尽头那间空置的一居室。房间不大，但收拾得干净，还带一张床和一扇能望见街道的窗。"£62000，一次付清。"他说。
+	<br><br>
+	<<if $money gte 6200000>>
+		<<link [[买下这间房（£62000）|Flats Room Sale]]>><<money -6200000>><<set $caeFlatsRoom to 1>><</link>>
+	<<else>>
+		<span class="red">你的钱不够。</span>
+	<</if>>
+<</if>>
+<br><br>
+<<link [[离开|Flats]]>><</link>>
+
+:: Flats Own Room
+<<set $outside to 0>>
+<<effects>>
+这是你买下的房间。一张铺得整齐的床靠着墙，窗外的街灯照进来一小片光。
+<<if $caeFlatsBed is 1>>
+	<br><span class="lblue">床垫换过了，躺上去会陷进柔软里。</span>
+<</if>>
+<<if $caeFlatsBath is 1>>
+	<br><span class="lblue">角落里多了一间小小的淋浴间。</span>
+<</if>>
+<<if $caeFlatsShelf is 1>>
+	<br><span class="lblue">墙边立着一个小小的书架，上面堆着你收来的旧书。</span>
+<</if>>
+<br><br>
+<<link [[睡一觉|Flats Own Room Sleep]]>><</link>>
+<br>
+<<link [[衣柜|Flats Own Wardrobe]]>><</link>>
+<br>
+<<if $caeFlatsBath is 1>>
+	<<link [[洗个澡|Flats Own Shower]]>><</link>>
+	<br>
+<</if>>
+<<if $caeFlatsShelf is 1 and $daily.caeFlatsRead isnot 1>>
+	<<link [[在书架前看书放松（0:30）|Flats Own Read]]>><<pass 30>><</link>>
+	<br>
+<</if>>
+<<link [[看看能添置什么|Flats Own Upgrade]]>><</link>>
+<br>
+<<link [[离开房间|Flats]]>><</link>>
+
+:: Flats Own Room Sleep
+<<sleep>>
+<<effects>>
+<<wakingEffects $sleepHoursTotal>>
+<<if $caeFlatsBed is 1>>
+	<<set $stress to Math.max(0, $stress - 100)>>
+	<<set $trauma to Math.max(0, $trauma - 1)>>
+	你在舒适的床垫上睡得很沉，连梦都没做一个，醒来时浑身轻松。
+<<else>>
+	你在自己的房间醒来，窗外隐约传来早班公交的声音。
+<</if>>
+<br><br>
+<<link [[起床|Flats Own Room]]>><</link>>
+
+:: Flats Own Shower
+<<set $outside to 0>>
+<<effects>>
+淋浴间里的热水很足。你冲掉一身的疲惫，把自己洗得干干净净。<<wash>>
+<br><br>
+<<link [[擦干，回到房间|Flats Own Room]]>><</link>>
+
+:: Flats Own Wardrobe
+<<effects>>
+<<set $wardrobe_location to "wardrobe">>
+<<wardrobeSelection>>
+你打开房间里的衣柜。<br><br>
+<div id="wardrobewear"><<wardrobewear>></div>
+<div id="wardrobeExits"><<link [[关上衣柜|Flats Own Room]]>><<cleanupOnWardrobeExit>><</link>></div>
+
+<<wardrobe>>
+
+:: Flats Own Read
+<<set $outside to 0>>
+<<effects>>
+<<set $daily.caeFlatsRead to 1>>
+<<set $stress to Math.max(0, $stress - 200)>>
+你在书架前坐下，翻开一本旧书。纸页的味道让人放松下来。
+<br><br>
+<<link [[合上书|Flats Own Room]]>><</link>>
+
+:: Flats Own Upgrade
+<<set $outside to 0>>
+<<effects>>
+你打量着这间房，盘算还能添置些什么。
+<br><br>
+<<if $caeFlatsBed isnot 1>>
+	<<if $money gte 30000>>
+		<<link [[换一张舒适床垫（£300）|Flats Own Upgrade]]>><<money -30000>><<set $caeFlatsBed to 1>><</link>>
+	<<else>>
+		<span class="red">换一张舒适床垫（£300）：你的钱不够。</span>
+	<</if>>
+<<else>>
+	<span class="blue">床垫已经是舒适的了。</span>
+<</if>>
+<br><br>
+<<if $caeFlatsBath isnot 1>>
+	<<if $money gte 20000>>
+		<<link [[加装一间小小的淋浴间（£200）|Flats Own Upgrade]]>><<money -20000>><<set $caeFlatsBath to 1>><</link>>
+	<<else>>
+		<span class="red">加装淋浴间（£200）：你的钱不够。</span>
+	<</if>>
+<<else>>
+	<span class="blue">房间里已经有淋浴间了。</span>
+<</if>>
+<br><br>
+<<if $caeFlatsShelf isnot 1>>
+	<<if $money gte 15000>>
+		<<link [[买一个二手书架（£150）|Flats Own Upgrade]]>><<money -15000>><<set $caeFlatsShelf to 1>><</link>>
+	<<else>>
+		<span class="red">二手书架（£150）：你的钱不够。</span>
+	<</if>>
+<<else>>
+	<span class="blue">书架已经摆好了。</span>
+<</if>>
+<br><br>
+<<link [[回房间|Flats Own Room]]>><</link>>
+
+:: Forest Fast Travel
+你估量了一下方向，挑一条省事的路线。
+<<set _ath to currentSkillValue("athletics")>>
+<<set _heels to ($worn.feet.type.includes("heels") and !$possessed)>>
+<<set _perStep to _heels ? Math.max(20, 30 - (2 * Math.floor(_ath / 250))) : Math.max(2, 5 - Math.floor(_ath / 250))>>
+<<set $caeFT to {}>>
+<br><span class="blue">当前位置：森林深度 <<print $forest>>。每「快速前进」一次 = 前进 5 点深度；运动技能 <<print _ath>> 让你每步只需 <<print _perStep>> 分钟（穿高跟鞋时按 Hobble 计算）。</span>
+<br><br>
+<<if $forest gt 0>>
+	<span class="gold">离开森林</span><br>
+	<<set _steps to Math.ceil(Math.abs(0 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.leave to {tgt: 0, mins: _mins, steps: _steps}>>
+	<<link [[快速返回森林之外（Danube Street）|Danube Street]]>><<set $forest to $caeFT.leave.tgt>><<pass $caeFT.leave.mins>><<set $foresthunt to 0>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+	<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+	<br>
+<<else>>
+	<span class="blue">你已经在森林边缘，可以直接从林间页面离开。</span><br>
+	<br>
+<</if>>
+<span class="gold">森林里的地点</span><br>
+<<set _steps to Math.ceil(Math.abs(12 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.churchyard to {tgt: 12, mins: _mins, steps: _steps}>>
+<<link [[旧教堂墓地|Churchyard]]>><<set $forest to $caeFT.churchyard.tgt>><<pass $caeFT.churchyard.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<<set _steps to Math.ceil(Math.abs(25 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.lake_shore to {tgt: 25, mins: _mins, steps: _steps}>>
+<<link [[湖泊：岸边|Lake Shore]]>><<set $forest to $caeFT.lake_shore.tgt>><<pass $caeFT.lake_shore.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<<set _steps to Math.ceil(Math.abs(35 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.lake_fall to {tgt: 35, mins: _mins, steps: _steps}>>
+<<link [[湖泊：瀑布|Lake Waterfall]]>><<set $forest to $caeFT.lake_fall.tgt>><<pass $caeFT.lake_fall.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<<set _steps to Math.ceil(Math.abs(45 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.lake_rock to {tgt: 45, mins: _mins, steps: _steps}>>
+<<link [[湖泊：钓鱼岩|Lake Fishing Rock]]>><<set $forest to $caeFT.lake_rock.tgt>><<pass $caeFT.lake_rock.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<<if ($edenfreedom or 0) gte 1 or ($syndromeeden or 0) gte 1>>
+	<<set _steps to Math.ceil(Math.abs(50 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.eden to {tgt: 50, mins: _mins, steps: _steps}>>
+	<<link [[伊甸的小屋|Eden Clearing]]>><<set $forest to $caeFT.eden.tgt>><<pass $caeFT.eden.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+	<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if ($syndromewolves or 0) gte 1>>
+	<<set _steps to Math.ceil(Math.abs(50 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.wolfcave to {tgt: 50, mins: _mins, steps: _steps}>>
+	<<link [[狼洞|Wolf Cave Clearing]]>><<set $forest to $caeFT.wolfcave.tgt>><<pass $caeFT.wolfcave.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+	<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if ($brookIntro or 0) gte 1 and !$worn.feet.type.includes("heels")>>
+	<<set _steps to Math.ceil(Math.abs(85 - $forest) / 5)>><<set _mins to _steps * _perStep>><<set $caeFT.brook to {tgt: 85, mins: _mins, steps: _steps}>>
+	<<link [[小溪|Forest Brook]]>><<set $forest to $caeFT.brook.tgt>><<pass $caeFT.brook.mins>><<set $forestmove to "quickly">><<set $forestmod to 3>><</link>>
+	<span class="blue">（<<print _steps>> 次快速前进 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<br>
+<<if ($historytrait or 0) gte 3>>
+	<span class="gold">秘密小路（原版快捷方式，固定 10 分钟）</span><br>
+	<<link [[秘密小路：往森林深处|Forest]]>><<set $forestmod to 1.5>><<set $forest += 50>><<set $forestmove to "secretin">><<pass 10>><<if $foresthunt gte 1>><<set $foresthunt += 1>><</if>><</link>><br>
+	<<if $forest gte 50>>
+		<<link [[秘密小路：穿出森林|Forest]]>><<set $forestmod to 1.5>><<set $forest -= 50>><<set $forestmove to "secretout">><<pass 10>><<if $foresthunt gte 1>><<set $foresthunt += 1>><</if>><</link>><br>
+	<</if>>
+	<br>
+<</if>>
+<br>
+<<link [[继续在林间探索|Forest]]>><</link>>

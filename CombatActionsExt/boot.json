@@ -1,0 +1,100 @@
+{
+    "name":  "CombatActionsExt",
+    "version":  "0.9.2",
+    "styleFileList":  [
+
+                      ],
+    "scriptFileList_earlyload":  [
+
+                                 ],
+    "scriptFileList_inject_early":  [
+
+                                    ],
+    "scriptFileList_preload":  [
+
+                               ],
+    "scriptFileList":  [
+                           "dist/js/actionColours.js",
+                           "dist/js/probe.js"
+                       ],
+    "tweeFileList":  [
+                         "twee/CombatActionsExt.tw"
+                     ],
+    "imgFileList":  [
+
+                    ],
+    "imgFileReplaceList":  [
+
+                           ],
+    "additionFile":  [
+                         "README.md"
+                     ],
+    "addonPlugin":  [
+                        {
+                            "modName":  "TweeReplacer",
+                            "addonName":  "TweeReplacerAddon",
+                            "modVersion":  "^1.7.0",
+                            "params":  [
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"leftActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _leftaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"leftActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _leftaction to {}\u003e\u003e\n\t\u003c\u003ccombatActionsExtRegister \"left\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"rightActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _rightaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"rightActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _rightaction to {}\u003e\u003e\n\t\u003c\u003ccombatActionsExtRegister \"right\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"feetActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _feetaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"feetActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _feetaction to {}\u003e\u003e\n\t\u003c\u003ccombatActionsExtRegister \"feet\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Effects Man",
+                                               "findString":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e\n\t\u003c\u003ccombatActionsExt\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets End Combat",
+                                               "findString":  "\u003c\u003cwidget \"endcombat\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"endcombat\"\u003e\u003e\n\t\u003c\u003ccombatActionsExtClear\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Man",
+                                               "findString":  "\u003c\u003cwidget \"actionsman\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"actionsman\"\u003e\u003e\n\t\u003c\u003ccombatActionsExtClimax\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets Actions Generation",
+                                               "findString":  "\u003c\u003cwidget \"mouthActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _mouthaction to {}\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"mouthActions\"\u003e\u003e\n\t/*Generate Actions*/\n\t\u003c\u003cset _mouthaction to {}\u003e\u003e\n\t\u003c\u003ccombatActionsExtRegister \"mouth\"\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           }
+                                       ]
+                        }
+                    ],
+    "dependenceInfo":  [
+                           {
+                               "modName":  "ModLoader",
+                               "version":  "^2.60.1"
+                           },
+                           {
+                               "modName":  "TweeReplacer",
+                               "version":  "^1.7.0"
+                           }
+                       ]
+}
