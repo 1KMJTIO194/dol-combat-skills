@@ -1,5 +1,15 @@
 # 更新日志
 
+## 2026-11-01 LocationsExt v1.7.1：版本自检（探针 + 页面版本水印）
+
+- **新增加载自检探针** `dist/js/probe.js`：刷新后控制台打印 `[LocationsExt] v1.7.1 已加载（探针脚本）`；
+  执行 `LocationsExtProbe()` 可检查旅店/公寓/森林段落是否为新版、ModLoader 列表里是否有 LocationsExt
+- **旅店页面底部显示版本水印** `LocationsExt v1.7.1`，进店即可确认加载的是哪一版
+- 用于排查「游戏里加载了旧副本导致旅店还是旧界面/点租房直接跳到 Inn Sleep」的问题：
+  旧副本通常来自之前用 ModLoader 界面导入过的旧 zip（存在于浏览器本地存储，会覆盖文件夹里的新版），
+  需要在 ModLoader 列表/本地存储里删除旧条目后再刷新
+- 功能与 v1.7.0 一致：£40/天、当天自由进出、隔天贝利式拦路、二楼卧室+浴室、公寓房间、森林快速旅行
+
 ## 2026-10-30 合集更新：新增 CombatActionsExt v0.9.2 与 LocationsExt v1.7.0
 
 - **新增 CombatActionsExt v0.9.2**（NSFW，可单独安装）：战斗中性行为扩展

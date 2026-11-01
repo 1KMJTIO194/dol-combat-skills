@@ -25,6 +25,7 @@
 <</if>>
 <br><br>
 <<link [[离开旅店|High Street]]>><</link>>
+<br><span class="blue small-description">LocationsExt v1.7.1</span>
 
 :: Inn Stairs
 <<set $outside to 0>>

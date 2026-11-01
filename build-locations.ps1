@@ -17,13 +17,14 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.7.0'
+$Version   = '1.7.1'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
 $HtmlPath  = Join-Path $GameDir 'Degrees of Lewdity.html'
 $SrcDir    = Join-Path $ScriptDir $ModName
 $TweePath  = Join-Path $SrcDir 'twee\LocationsExt.tw'
+$ProbePath = Join-Path $SrcDir 'dist\js\probe.js'
 $ReadmePath = Join-Path $SrcDir 'README.md'
 $BootPath  = Join-Path $SrcDir 'boot.json'
 $ZipName   = '{0}_v{1}.zip' -f $ModName, $Version
@@ -154,6 +155,7 @@ $required = [ordered]@{
     '公寓房价'          = '<<money -6200000>>'
     '房间购买状态'      = '$caeFlatsRoom'
     '旅店淋浴段落'      = ':: Inn Shower'
+    '页面版本水印'      = ('LocationsExt v' + $Version)
     '旅店房间段落'      = ':: Inn Room'
     '旅店楼梯段落'      = ':: Inn Stairs'
     '当天房钱标记'      = '$caeInnPaidDate'
@@ -230,6 +232,18 @@ foreach ($need in @('<<widget "sleep">>', '<<widget "wakingEffects">>', '<<widge
 }
 Write-Host '      原版接口存在（sleep / wakingEffects / wash / wardrobe 宏）✓'
 
+# 探针脚本自检（版本号一致 + JS 语法）
+if (-not (Test-Path -LiteralPath $ProbePath)) { throw "缺少探针脚本：$ProbePath" }
+$probeText = [System.IO.File]::ReadAllText($ProbePath, [System.Text.Encoding]::UTF8)
+if (-not $probeText.Contains('LocationsExtProbe')) { throw '探针脚本里没有 LocationsExtProbe' }
+if (-not $probeText.Contains('var VERSION = "' + $Version + '"')) { throw "探针脚本版本号与构建版本不一致（应为 $Version）" }
+$nodeExe = 'F:\install\node\node.exe'
+if (Test-Path -LiteralPath $nodeExe) {
+    & $nodeExe --check $ProbePath 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw '探针脚本 JS 语法错误' }
+}
+Write-Host ("      自检探针自检通过（LocationsExtProbe / 版本 {0} / JS 语法）✓" -f $Version)
+
 # ---- 3) 生成 boot.json ----
 Write-Host '[3/6] 生成 boot.json ...'
 $boot = [ordered]@{
@@ -239,7 +253,7 @@ $boot = [ordered]@{
     scriptFileList_earlyload   = @()
     scriptFileList_inject_early = @()
     scriptFileList_preload     = @()
-    scriptFileList             = @()
+    scriptFileList             = @('dist/js/probe.js')
     tweeFileList               = @('twee/LocationsExt.tw')
     imgFileList                = @()
     imgFileReplaceList         = @()
@@ -270,6 +284,7 @@ if (Test-Path -LiteralPath $ZipPath) { Remove-Item -LiteralPath $ZipPath -Force 
 $zipEntries = [ordered]@{
     'boot.json'                = $BootPath
     'twee/LocationsExt.tw'     = $TweePath
+    'dist/js/probe.js'         = $ProbePath
     'README.md'                = $ReadmePath
 }
 $fs = [System.IO.File]::Open($ZipPath, [System.IO.FileMode]::Create)
@@ -287,7 +302,7 @@ $arc.Dispose(); $fs.Close()
 $zipRead = [System.IO.Compression.ZipFile]::OpenRead($ZipPath)
 $entryNames = @($zipRead.Entries | ForEach-Object { $_.FullName })
 $zipRead.Dispose()
-foreach ($need in @('boot.json', 'twee/LocationsExt.tw', 'README.md')) {
+foreach ($need in @('boot.json', 'twee/LocationsExt.tw', 'dist/js/probe.js', 'README.md')) {
     if ($entryNames -notcontains $need) { throw "zip 缺少条目：$need" }
 }
 if (($entryNames | Where-Object { $_ -like '*\*' }).Count -gt 0) { throw 'zip 条目含反斜杠，ModLoader 将无法按路径取文件' }

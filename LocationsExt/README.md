@@ -17,7 +17,7 @@
 | **森林快速旅行** | Forest（森林，林间页面底部新增链接） | 按原版数据列出各方向目的地与耗时，一键前往 |
 
 
-## 旅店入住规则（v1.7.0）
+## 旅店入住规则（v1.7.1）
 
 - 前台租房时记录 **当天日期**：`$caeInnPaidDate = Time.date.year + "-" + Time.date.month + "-" + Time.date.day`
 - **当天**：前台显示「上楼回房间（0:01）」，可自由进出、淋浴免费
@@ -74,9 +74,9 @@
 
 锚点都是**纯代码**（不含英文 UI 文本），汉化 mod 替换文本时不会失效。
 
-## 安装
+## 版本自检（v1.7.1 新增）`n`n如果怀疑游戏加载的不是最新版：`n`n- 旅店前台页面最底部会显示 `<span class="blue">LocationsExt v1.7.1</span>`；看不到或版本号更小 = 加载的是旧副本`n- F12 控制台刷新后应出现 `[LocationsExt] v1.7.1 已加载（探针脚本）``n- 再执行 `LocationsExtProbe()` 会打印检查表（旅店/公寓/森林段落是否为新版、ModLoader 列表里是否有 LocationsExt）`n- 旧副本通常来自：之前用 ModLoader 界面导入过旧 zip（存在浏览器本地存储里，会覆盖文件夹里的新版）`n`n## 安装
 
-1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.7.0.zip`
+1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.7.1.zip`
 2. 刷新页面（或由网站在 `modList.json` 里自动加载）
 3. 前置：ModLoader + TweeReplacer
 

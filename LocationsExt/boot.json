@@ -1,6 +1,6 @@
 {
     "name":  "LocationsExt",
-    "version":  "1.7.0",
+    "version":  "1.7.1",
     "styleFileList":  [
 
                       ],
@@ -14,7 +14,7 @@
 
                                ],
     "scriptFileList":  [
-
+                           "dist/js/probe.js"
                        ],
     "tweeFileList":  [
                          "twee/LocationsExt.tw"
