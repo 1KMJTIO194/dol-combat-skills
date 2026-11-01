@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.7.1'
+$Version   = '1.7.2'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -123,7 +123,7 @@ $tweeText = [System.IO.File]::ReadAllText($TweePath, [System.Text.Encoding]::UTF
 
 $tweeRegex = '(?m)^(:: +((?:[^:"\/\n\r\[\] ]+ *)+)(?: *\[((?:[^ \]]+ *)* *)\] *|))$'
 $parsed = [regex]::Matches($tweeText, $tweeRegex)
-$expectPassages = @('Inn', 'Inn Stairs', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel')
+$expectPassages = @('Inn', 'Inn Stairs', 'Inn Bed', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel')
 if ($parsed.Count -ne $expectPassages.Count) { throw "twee 被解析出 $($parsed.Count) 个段落（应为 $($expectPassages.Count) 个）" }
 $gotNames = @($parsed | ForEach-Object { $_.Groups[2].Value.Trim() })
 foreach ($need in $expectPassages) {
@@ -158,6 +158,12 @@ $required = [ordered]@{
     '页面版本水印'      = ('LocationsExt v' + $Version)
     '旅店房间段落'      = ':: Inn Room'
     '旅店楼梯段落'      = ':: Inn Stairs'
+    '旅店床铺段落'      = ':: Inn Bed'
+    '原版睡眠时长链接'  = '<<generateSleepLinks "Inn Sleep">>'
+    '原版恶梦检查'      = '<<nightmareCheck "Inn Sleep">>'
+    '原版睡眠效果'      = '<<sleepeffects>>'
+    '床上爬下链接'      = '[[爬下床|Inn Room]]'
+    '爬到床上链接'      = '[[爬到床上|Inn Bed]]'
     '当天房钱标记'      = '$caeInnPaidDate'
     '当天日期变量'      = '$caeInnToday'
     '日期比较来源'      = 'Time.date.year'
@@ -341,4 +347,4 @@ Write-Host ("  mod 源目录 : {0}" -f $SrcDir)
 Write-Host ("  安装包     : {0}" -f $ZipPath)
 Write-Host ("  自动加载表 : {0}" -f $ListPath)
 Write-Host ("  替换参数   : {0} 条（商业街旅店入口 / 公寓楼房间入口）" -f $patchParams.Count)
-Write-Host  '  新地点     : High Street「旅店」（£40/天：当天自由进出，隔天需重新付钱，贝利式拦路） ／ Flats「待售房间」（£62000 买断 + 衣柜/淋浴/书架升级） ／ 森林「快速旅行」'
+Write-Host  '  新地点     : High Street「旅店」（£40/天：当天自由进出，隔天拦路；床铺=原版睡 1~8 小时选择） ／ Flats「待售房间」 ／ 森林「快速旅行」'

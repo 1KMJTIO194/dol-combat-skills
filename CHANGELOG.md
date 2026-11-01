@@ -1,5 +1,20 @@
 # 更新日志
 
+## 2026-11-02 LocationsExt v1.7.2：旅店床铺改为原版式睡眠
+
+- **修复：旅店床上睡觉没有任何效果**（时间不推进、疲劳不恢复）
+  - 原因：旧版 `Inn Sleep` 直接调用 `<<sleep>>`，但没有先设置原版睡眠时长变量 `$sleephour`，
+    导致 `sleephour` 的每小时循环一次都不执行（`<<pass 1 hour>>` 不运行）
+  - 修复：照原版孤儿院床流程重做
+    - 房间点「爬到床上」→ 新段落 `Inn Bed`：`<<nightmareCheck "Inn Sleep">>` + `<<generateSleepLinks "Inn Sleep">>`
+      （出现原版「睡 8/7/…/1 小时」「只管去睡」选项 + 预计时间）+ 「爬下床」
+    - 选时长后进入 `Inn Sleep`：`<<sleep>>` + `<<effects>>` + `<<sleepeffects>>` + `<<wakingEffects $sleepHoursTotal>>`，
+      按原版每小时 −200（无创伤再 −50）疲劳
+    - 醒来有「起床」回房间 /「下楼，退房离开」
+- 实测：睡 8 小时 → 时间 +8.00 小时、疲劳 900→0，来回房间正常
+- 探针新增检查项：`Inn Bed` 段落、睡 1~8 小时链接、`nightmareCheck`
+- 探针修复：`Story.get` 改为通过 `SugarCube.Story` 读取（否则探针项全 fail）
+
 ## 2026-11-01 LocationsExt v1.7.1：版本自检（探针 + 页面版本水印）
 
 - **新增加载自检探针** `dist/js/probe.js`：刷新后控制台打印 `[LocationsExt] v1.7.1 已加载（探针脚本）`；

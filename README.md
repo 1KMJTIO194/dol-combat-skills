@@ -12,7 +12,7 @@
 |---|---|---|---|
 | **CombatSkills** | v1.13.2 | 战斗技能面板（攻击/防御/敏捷 F~S）+ 战斗成长、战利品（含扒衣服）、拳击俱乐部、酒吧斗殴、反剪双臂 | [CombatSkills/README.md](CombatSkills/README.md) |
 | **CombatActionsExt** | v0.9.2 | 战斗中性行为扩展（咬 / 脱衣 / 揉捏 / 插入 / 拳交 / 脚部动作 / 敌人高潮选择），NSFW | [CombatActionsExt/README.md](CombatActionsExt/README.md) |
-| **LocationsExt** | v1.7.1 | 旅店（High Street，£40/天、当天自由进出、隔天贝利式拦路；卧室+浴室）、公寓可购买房间（£62000，衣柜/淋浴/书架升级）、森林快速旅行（按距离算步数、运动技能加速、单一快速出林） | [LocationsExt/README.md](LocationsExt/README.md) |
+| **LocationsExt** | v1.7.2 | 旅店（High Street，£40/天、当天自由进出、隔天贝利式拦路；卧室+浴室）、公寓可购买房间（£62000，衣柜/淋浴/书架升级）、森林快速旅行（按距离算步数、运动技能加速、单一快速出林） | [LocationsExt/README.md](LocationsExt/README.md) |
 
 三个模组相互独立（各自有独立 `boot.json`），可以只装其中一个，也可以全部启用。
 
@@ -71,7 +71,7 @@
 |---|---|---|
 | CombatSkills | `CombatSkills_v1.13.2.zip` | 特征面板最底部显示 `CombatSkills mod v1.13.2` |
 | CombatActionsExt | `CombatActionsExt_v0.9.2.zip` | F12 控制台有 `[CombatActionsExt] v0.9.2 已加载` 日志 |
-| LocationsExt | `LocationsExt_v1.7.1.zip` | High Street 的 Alternate routes 里出现「旅店」；Flats 出现「看看待售的房间」 |
+| LocationsExt | `LocationsExt_v1.7.2.zip` | High Street 的 Alternate routes 里出现「旅店」；Flats 出现「看看待售的房间」 |
 
 刷新页面后生效。**卸载**：ModLoader 里移除即可，游戏文件零改动、完全恢复原状。
 

@@ -25,7 +25,7 @@
 <</if>>
 <br><br>
 <<link [[离开旅店|High Street]]>><</link>>
-<br><span class="blue small-description">LocationsExt v1.7.1</span>
+<br><span class="blue small-description">LocationsExt v1.7.2</span>
 
 :: Inn Stairs
 <<set $outside to 0>>
@@ -46,11 +46,28 @@
 <</if>>
 <br>
 <<link [[离开旅店|High Street]]>><</link>>
+:: Inn Bed
+<<set $outside to 0>>
+<<effects>>
+你钻进被子里。床单洗得很干净，带着一点肥皂味，楼下的街道声隔着地板传上来。
+<br><br>
+<<nightmareCheck "Inn Sleep">>
+<<generateSleepLinks "Inn Sleep">>
+<<getouticon>><<link [[爬下床|Inn Room]]>><</link>>
+
 :: Inn Sleep
+<<set _autosavehere to true>>
 <<sleep>>
 <<effects>>
-<<wakingEffects $sleepHoursTotal>>
-你睡得还算安稳，楼下的街道声一直没停，但至少有一张干净的床。
+<<sleepeffects>>
+<<if _wakingEffect is undefined>><<wakingEffects $sleepHoursTotal>><</if>>
+<<if ["dryheaving","nausea"].includes(_wakingEffect)>>
+	<br><br>你睡得很沉，但醒来时有点不舒服。
+<<elseif $nightmares gte 1 and $controlled is 0>>
+	<<nightmareWake>>
+<<else>>
+	<br><br>你睡得很沉，醒来时精神多了。窗外的光线透过窗帘缝照进来。
+<</if>>
 <br><br>
 <<bedicon>><<link [[起床|Inn Room]]>><</link>>
 <br>
@@ -68,7 +85,7 @@
 <<effects>>
 旅店二楼尽头的小房间，床铺得很整齐，窗帘洗得发白。门后挂着一把小小的钥匙。
 <br><br>
-<<bedicon>><<link [[睡下|Inn Sleep]]>><</link>>
+<<bedicon>><<link [[爬到床上|Inn Bed]]>><</link>>
 <br>
 <<bathroomicon "shower">><<link [[浴室 (0:01)|Inn Bathroom]]>><<pass 1>><</link>>
 <br>

@@ -13,14 +13,16 @@
  * ==========================================================================*/
 (function () {
 	var TAG = "[LocationsExt]";
-	var VERSION = "1.7.1";
+	var VERSION = "1.7.2";
 	window.LocationsExt_version = VERSION;
 	console.log(TAG + " v" + VERSION + " 已加载（探针脚本）");
 
 	function passageText(name) {
 		try {
-			if (window.Story && typeof Story.get === "function") {
-				var p = Story.get(name);
+			var core = window.SugarCube || window;
+			var story = core.Story || window.Story;
+			if (story && typeof story.get === "function") {
+				var p = story.get(name);
 				return p && p.text ? p.text : "";
 			}
 		} catch (e) { /* ignore */ }
@@ -33,6 +35,7 @@
 
 		var inn = passageText("Inn");
 		var innRoom = passageText("Inn Room");
+		var innBed = passageText("Inn Bed");
 		var innStairs = passageText("Inn Stairs");
 		var innBath = passageText("Inn Bathroom");
 		var flats = passageText("Flats Room Sale");
@@ -44,6 +47,10 @@
 		c("旅店：含当天房钱判定", inn.indexOf("caeInnPaidToday") >= 0);
 		c("旅店：描述含浴室", inn.indexOf("（带浴室）") >= 0);
 		c("Inn Room 段落存在（二楼房间）", innRoom.length > 0);
+		c("Inn Bed 段落存在（原版式睡眠选择）", innBed.length > 0);
+		c("旅店：床链接指向 Inn Bed", innRoom.indexOf("|Inn Bed]]") >= 0);
+		c("旅店：生成睡 1~8 小时链接", innBed.indexOf("generateSleepLinks") >= 0);
+		c("旅店：睡眠含 nightmareCheck", innBed.indexOf("nightmareCheck") >= 0);
 		c("Inn Stairs 段落存在（拦路）", innStairs.length > 0);
 		c("Inn Bathroom 段落存在（浴室）", innBath.length > 0);
 		c("Flats Room Sale 段落存在（公寓房间）", flats.length > 0);
