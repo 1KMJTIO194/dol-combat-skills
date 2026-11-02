@@ -17,7 +17,7 @@
 | **森林快速旅行** | Forest（森林，林间页面底部新增链接） | 按原版数据列出各方向目的地与耗时，一键前往 |
 
 
-## 旅店入住规则（v1.7.2）
+## 旅店入住规则（v1.7.3）
 
 - 前台租房时记录 **当天日期**：`$caeInnPaidDate = Time.date.year + "-" + Time.date.month + "-" + Time.date.day`
 - **当天**：前台显示「上楼回房间（0:01）」，可自由进出、淋浴免费
@@ -74,9 +74,9 @@
 
 锚点都是**纯代码**（不含英文 UI 文本），汉化 mod 替换文本时不会失效。
 
-## 旅店床铺（v1.7.2 修复）\n\n- 之前版本旅店床直接调用 `<<sleep>>`，但没先设置 `$sleephour`，导致睡眠循环一次都不执行（时间不动、疲劳不减）\n- v1.7.2 起照原版孤儿院床流程重做：\n  - 房间里点「爬到床上」→ `Inn Bed` 段落：`<<nightmareCheck "Inn Sleep">>` + `<<generateSleepLinks "Inn Sleep">>`（出现「睡 8/7/…/1 小时」「只管去睡」等原版选项）+「爬下床」\n  - 选择时长后进入 `Inn Sleep`：`<<sleep>>` + `<<effects>>` + `<<sleepeffects>>` + `<<wakingEffects $sleepHoursTotal>>`，按原版每小时扣 200+50 疲劳\n  - 醒来有「起床」回房间、或「下楼，退房离开」\n\n（v1.7.1 新增）`n`n如果怀疑游戏加载的不是最新版：`n`n- 旅店前台页面最底部会显示 `<span class="blue">LocationsExt v1.7.1</span>`；看不到或版本号更小 = 加载的是旧副本`n- F12 控制台刷新后应出现 `[LocationsExt] v1.7.1 已加载（探针脚本）``n- 再执行 `LocationsExtProbe()` 会打印检查表（旅店/公寓/森林段落是否为新版、ModLoader 列表里是否有 LocationsExt）`n- 旧副本通常来自：之前用 ModLoader 界面导入过旧 zip（存在浏览器本地存储里，会覆盖文件夹里的新版）`n`n## 安装
+## 旅店床铺（v1.7.3：原版式上床方式 + 衣柜）\n\n- 之前版本旅店床直接调用 `<<sleep>>`，但没先设置 `$sleephour`，导致睡眠循环一次都不执行（时间不动、疲劳不减）\n- v1.7.2 起照原版孤儿院床流程重做：\n  - 房间里有三种上床方式（照原版孤儿院床）：\n  - 「爬到床上」→ 直接进被窝（不脱衣）\n  - 「脱光并爬到床上」→ `<<undressSleep "wardrobe">>` 把衣服收进衣柜再上床\n  - 「穿上〇〇并爬到床上」→ 衣柜里**标记为 sleep 的套装**列表（同原版 `listsleepoutfits`），选中后用 `<<wearoutfit>>` 穿上再上床\n- 房间还有「衣柜」→ `Inn Wardrobe`（原版 Wardrobe 界面 + 自定义退出「关上衣柜」回房间）\n- 上床后 `Inn Bed` 段落：`<<nightmareCheck "Inn Sleep">>` + `<<generateSleepLinks "Inn Sleep">>`（出现「睡 8/7/…/1 小时」「只管去睡」等原版选项）+「爬下床」\n  - 选择时长后进入 `Inn Sleep`：`<<sleep>>` + `<<effects>>` + `<<sleepeffects>>` + `<<wakingEffects $sleepHoursTotal>>`，按原版每小时扣 200+50 疲劳\n  - 醒来有「起床」回房间、或「下楼，退房离开」\n\n（v1.7.1 新增）`n`n如果怀疑游戏加载的不是最新版：`n`n- 旅店前台页面最底部会显示 `<span class="blue">LocationsExt v1.7.1</span>`；看不到或版本号更小 = 加载的是旧副本`n- F12 控制台刷新后应出现 `[LocationsExt] v1.7.1 已加载（探针脚本）``n- 再执行 `LocationsExtProbe()` 会打印检查表（旅店/公寓/森林段落是否为新版、ModLoader 列表里是否有 LocationsExt）`n- 旧副本通常来自：之前用 ModLoader 界面导入过旧 zip（存在浏览器本地存储里，会覆盖文件夹里的新版）`n`n## 安装
 
-1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.7.2.zip`
+1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.7.3.zip`
 2. 刷新页面（或由网站在 `modList.json` 里自动加载）
 3. 前置：ModLoader + TweeReplacer
 

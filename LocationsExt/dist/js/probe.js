@@ -13,7 +13,7 @@
  * ==========================================================================*/
 (function () {
 	var TAG = "[LocationsExt]";
-	var VERSION = "1.7.2";
+	var VERSION = "1.7.3";
 	window.LocationsExt_version = VERSION;
 	console.log(TAG + " v" + VERSION + " 已加载（探针脚本）");
 
@@ -38,6 +38,8 @@
 		var innBed = passageText("Inn Bed");
 		var innStairs = passageText("Inn Stairs");
 		var innBath = passageText("Inn Bathroom");
+		var innWardrobe = passageText("Inn Wardrobe");
+		var locWidgets = passageText("LocationsExt Widgets");
 		var flats = passageText("Flats Room Sale");
 		var forest = passageText("Forest Fast Travel");
 
@@ -53,6 +55,10 @@
 		c("旅店：睡眠含 nightmareCheck", innBed.indexOf("nightmareCheck") >= 0);
 		c("Inn Stairs 段落存在（拦路）", innStairs.length > 0);
 		c("Inn Bathroom 段落存在（浴室）", innBath.length > 0);
+		c("Inn Wardrobe 段落存在（衣柜）", innWardrobe.length > 0);
+		c("旅店：衣柜链接", innRoom.indexOf("|Inn Wardrobe]]") >= 0);
+		c("旅店：脱光上床", innRoom.indexOf("脱光并爬到床上") >= 0);
+		c("旅店：睡衣列表 widget", locWidgets.indexOf("caeInnSleepOutfits") >= 0 || innRoom.indexOf("caeInnSleepOutfits") >= 0);
 		c("Flats Room Sale 段落存在（公寓房间）", flats.length > 0);
 		c("Forest Fast Travel 段落存在", forest.length > 0);
 		c("森林快速旅行：含湖泊目的地", forest.indexOf("湖泊") >= 0);

@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.7.2'
+$Version   = '1.7.3'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -123,7 +123,7 @@ $tweeText = [System.IO.File]::ReadAllText($TweePath, [System.Text.Encoding]::UTF
 
 $tweeRegex = '(?m)^(:: +((?:[^:"\/\n\r\[\] ]+ *)+)(?: *\[((?:[^ \]]+ *)* *)\] *|))$'
 $parsed = [regex]::Matches($tweeText, $tweeRegex)
-$expectPassages = @('Inn', 'Inn Stairs', 'Inn Bed', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel')
+$expectPassages = @('Inn', 'Inn Stairs', 'Inn Bed', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Inn Wardrobe', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel', 'LocationsExt Widgets')
 if ($parsed.Count -ne $expectPassages.Count) { throw "twee 被解析出 $($parsed.Count) 个段落（应为 $($expectPassages.Count) 个）" }
 $gotNames = @($parsed | ForEach-Object { $_.Groups[2].Value.Trim() })
 foreach ($need in $expectPassages) {
@@ -159,6 +159,15 @@ $required = [ordered]@{
     '旅店房间段落'      = ':: Inn Room'
     '旅店楼梯段落'      = ':: Inn Stairs'
     '旅店床铺段落'      = ':: Inn Bed'
+    '旅店衣柜段落'      = ':: Inn Wardrobe'
+    '睡衣列表段落'      = ':: LocationsExt Widgets'
+    '睡衣列表 widget'   = '<<widget "caeInnSleepOutfits">>'
+    '并爬到床上链接'    = '"穿上" + _outfitname + "并爬到床上"|Inn Bed'
+    '脱光上床链接'      = '[[脱光并爬到床上|Inn Bed]]'
+    '原版脱衣存储'      = '<<undressSleep "wardrobe">>'
+    '原版穿睡衣'        = '<<wearoutfit>>'
+    '衣柜链接'          = '[[衣柜|Inn Wardrobe]]'
+    '关上衣柜'          = '[[关上衣柜|Inn Room]]'
     '原版睡眠时长链接'  = '<<generateSleepLinks "Inn Sleep">>'
     '原版恶梦检查'      = '<<nightmareCheck "Inn Sleep">>'
     '原版睡眠效果'      = '<<sleepeffects>>'

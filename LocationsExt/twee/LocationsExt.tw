@@ -25,7 +25,7 @@
 <</if>>
 <br><br>
 <<link [[离开旅店|High Street]]>><</link>>
-<br><span class="blue small-description">LocationsExt v1.7.2</span>
+<br><span class="blue small-description">LocationsExt v1.7.3</span>
 
 :: Inn Stairs
 <<set $outside to 0>>
@@ -49,11 +49,12 @@
 :: Inn Bed
 <<set $outside to 0>>
 <<effects>>
+<<wearoutfit>>
 你钻进被子里。床单洗得很干净，带着一点肥皂味，楼下的街道声隔着地板传上来。
 <br><br>
 <<nightmareCheck "Inn Sleep">>
 <<generateSleepLinks "Inn Sleep">>
-<<getouticon>><<link [[爬下床|Inn Room]]>><</link>>
+<<getouticon>><<link [[爬下床|Inn Room]]>><<storeon "wardrobe">><<set $wardrobe_location to "wardrobe">><<loadTempHairStyle>><</link>>
 
 :: Inn Sleep
 <<set _autosavehere to true>>
@@ -69,6 +70,9 @@
 	<br><br>你睡得很沉，醒来时精神多了。窗外的光线透过窗帘缝照进来。
 <</if>>
 <br><br>
+<<if $worn.upper.name is "naked" and $worn.lower.name is "naked">>
+	<<dooricon "open">><<link [[先去衣柜穿衣服|Inn Wardrobe]]>><</link>><br>
+<</if>>
 <<bedicon>><<link [[起床|Inn Room]]>><</link>>
 <br>
 <<dooricon "open">><<link [[下楼，退房离开|Inn]]>><</link>>
@@ -86,6 +90,11 @@
 旅店二楼尽头的小房间，床铺得很整齐，窗帘洗得发白。门后挂着一把小小的钥匙。
 <br><br>
 <<bedicon>><<link [[爬到床上|Inn Bed]]>><</link>>
+<br>
+<<bedicon>><<link [[脱光并爬到床上|Inn Bed]]>><<undressSleep "wardrobe">><</link>>
+<br>
+<<caeInnSleepOutfits>>
+<<dooricon "open">><<link [[衣柜|Inn Wardrobe]]>><</link>>
 <br>
 <<bathroomicon "shower">><<link [[浴室 (0:01)|Inn Bathroom]]>><<pass 1>><</link>>
 <br>
@@ -116,6 +125,15 @@
 <<getouticon>><<link [[起身，回房间|Inn Room]]>><</link>>
 <br>
 <<bathroomicon "shower">><<link [[回浴室|Inn Bathroom]]>><</link>>
+:: Inn Wardrobe
+<<effects>>
+<<set $wardrobe_location to "wardrobe">>
+<<wardrobeSelection>>
+你打开房间里的衣柜。<br><br>
+<div id="wardrobewear"><<wardrobewear>></div>
+<div id="wardrobeExits"><<link [[关上衣柜|Inn Room]]>><<cleanupOnWardrobeExit>><</link>></div>
+
+<<wardrobe>>
 :: Flats Room Sale
 <<set $outside to 0>>
 <<effects>>
@@ -299,3 +317,25 @@
 <</if>>
 <br>
 <<link [[继续在林间探索|Forest]]>><</link>>
+
+:: LocationsExt Widgets [widget]
+/* 旅店睡衣列表：照原版 listsleepoutfits 的默认分支，但上床目标改为 Inn Bed */
+<<widget "caeInnSleepOutfits">>
+	<<set $wardrobe_location to "wardrobe">>
+	<<set $storeLocation to "wardrobe">>
+	<<wardrobeSelection true>>
+	<<if !$earSlime.alwaysSleepNaked or $hypnosis_traits.silence>>
+		<<for _index, $_outfit range $outfit>>
+			<<if $_outfit.type.includes("sleep")>>
+				<<bedicon>>
+				<<capture _index>>
+					<<set _outfitname to $_outfit.name + ($_outfit.colors is false ? "" : " [C]")>>
+					<<link [["穿上" + _outfitname + "并爬到床上"|Inn Bed]]>><<set $wear_outfit to _index>><<saveTempHairStyle>><</link>>
+				<</capture>>
+				<br>
+			<</if>>
+		<</for>>
+	<<else>>
+		<<bedicon>><span class="purple">脑中的史莱姆不让你穿着任何东西睡觉。</span><br>
+	<</if>>
+<</widget>>

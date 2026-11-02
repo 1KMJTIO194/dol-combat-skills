@@ -1,5 +1,17 @@
 # 更新日志
 
+## 2026-11-02 LocationsExt v1.7.3：旅店原版式上床方式 + 衣柜
+
+- **旅店房间补上原版孤儿院床的三种上床方式**
+  - 「爬到床上」：直接进被窝（不脱衣）
+  - 「脱光并爬到床上」：`<<undressSleep "wardrobe">>` 把衣服收进衣柜后上床
+  - 「穿上〇〇并爬到床上」：照原版 `listsleepoutfits` 列出衣柜里标记为 sleep 的套装，选中后 `<<wearoutfit>>` 穿上再上床
+- **新增旅店衣柜** `Inn Wardrobe`：原版 Wardrobe 界面（`<<wardrobeSelection>>` / `<<wardrobewear>>` / `<<wardrobe>>`），
+  自定义退出「关上衣柜」回房间；脱光上床 / 起床后都可用它换衣服
+- `Inn Bed` 顶部按原版 Bed 加 `<<wearoutfit>>`，爬下床时 `<<storeon "wardrobe">>` 整理衣物
+- 探针新增检查：`Inn Wardrobe`、衣柜链接、脱光上床、睡衣列表 widget
+- 实测（Headless Chrome 真实点击）：脱光上床 → 裸体状态、衣柜打开/关闭、睡 8 小时疲劳 800→0、起床回房间，15/15 全过
+
 ## 2026-11-02 LocationsExt v1.7.2：旅店床铺改为原版式睡眠
 
 - **修复：旅店床上睡觉没有任何效果**（时间不推进、疲劳不恢复）
