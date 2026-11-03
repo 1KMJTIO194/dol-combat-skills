@@ -1,6 +1,6 @@
 {
     "name":  "CombatSkills",
-    "version":  "1.13.3",
+    "version":  "1.13.4",
     "styleFileList":  [
                           "CombatSkills.css"
                       ],

@@ -393,6 +393,33 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
 
+## 已修：酒吧斗殴胜利不加钱（v1.13.4）
+
+**现象**：丰收街酒吧斗殴打赢后，胜利文本与 `$pubBrawlWins+1` 都正常，但钱没增加。
+
+**原因**：原写法是
+
+```twine
+<<money (500 + random(0, 10) * 100) "pubBrawl">>
+```
+
+SugarCube 的宏参数**按空格切分**，`(500 + random(0, 10)` 这种带空格的表达式会被拆成多个参数
+（第一个参数变成字符串 `"(500"`），`money()` 校验参数时抛错；而 DoL 的 `DefineMacro` 内部
+`try/catch` 只 `console.warn("Something went wrong", e)`，**界面上完全看不出报错**，所以表现为「文本正常、钱没加」。
+
+**v1.13.4 起**：先算到临时变量再传：
+
+```twine
+<<set _brawlPay to 500 + random(0, 10) * 100>>
+<<money _brawlPay "pubBrawl">>
+```
+
+构建脚本新增自检：twee 里出现 `<<money (` 写法直接拒绝构建。
+（其它 mod 的 `<<money -2000 "boxingClub">>` / `<<money _pay "boxingClub">>` / 战利品 `<<money _clCash "thievery">>` 都是单 token 参数，未受影响。）
+
+**实测**：headless Chrome 加载真实游戏 + 全部 mod，直接进入 `Pub Brawl Finish` 胜利分支：
+money 10000 → 11500（+£15）、`$pubBrawlWins=1`、胜利文本正常。
+
 ## 已修：赃款（$blackmoney）单位错误导致销赃 ×100（v1.13.3）
 
 **现象**：战斗内提示「£15 零钱（记为赃款）」，但销赃时（丰收街酒吧 Landry 的 `Pub Sell`）拿到 £1500。
