@@ -2,14 +2,14 @@
 
 《Degrees of Lewdity》ModLoader 模组：在战斗动作列表里增加 **4 组针对敌人胸部/肛门的性行为动作**。
 
-> 适配 **DoL 0.5.12.13** · 需要 ModLoader + **TweeReplacer** · 不修改任何游戏文件 · 当前版本 **v0.9.2**
+> 适配 **DoL 0.5.12.13** · 需要 ModLoader + **TweeReplacer** · 不修改任何游戏文件
 > 这是 NSFW 内容扩展，与主 mod `CombatSkills` 相互独立（可单独启用/禁用）。
 
 ## 动作（v0.4.0 起支持普通战斗，v0.8.0 增加小穴/持续脚部/原版脱衣）
 
 | 动作 | 用手/脚 | 部位 | 出现条件 |
 |---|---|---|
-| 「咬」 | 嘴 | 人类敌人 | 嘴自由（`$mouthuse is 0`）且没被捂住/塞住（脸无 `face_covering`/`gag`）、人类战斗（v0.9.1 起野兽战不显示） |
+| 「咬」 | 嘴 | 敌人（人类或野兽） | 嘴自由（`$mouthuse is 0`）且没被捂住/塞住（脸无 `face_covering`/`gag`） |
 | 「脱掉上衣」 | 左手 / 右手 | 对方上衣 | 对方 `chest is "clothed"`（同原版 Undress）→ 原版判定 + `npcUndressText`/`npcRevealText` |
 | 「脱掉下衣」 | 左手 / 右手 | 对方下衣 | 对方 `penis is "clothed"` 或 `vagina is "clothed"` → 成功后 penis/vagina 置 0 |
 | 「揉捏胸部」 | 左手 / 右手 | 对方胸部 | `$NPCList[i].chest is 0`（上身裸露） |
@@ -27,7 +27,7 @@
 本 mod 在嘴部动作列表里加了「**咬**」：
 
 - 出现条件：战斗中、嘴自由（`$mouthuse is 0`）、脸没有被 `face_covering`/`gag` 遮住、
-  非 stalk 位置（**v0.9.1 起仅人类敌人**，野兽战斗无 NPCList 数据，本 mod 动作整体不注册）
+  非 stalk 位置（人类和野兽敌人都可用）
 - **v0.6.0 起判定参考原版 `handbite`：必定咬到，没有失败判定**
   - 尖牙：`<<defiance 8>>`、`<<control 12>>`
   - 普通：`<<defiance 4>>`、`<<control 8>>`
@@ -36,7 +36,7 @@
 - **动作分类**：v0.6.0 把 `caeMouthBite` 补进了原版 `window.combatActionColours` 的
   `def`（反抗）分类，所以 UI 里会像原版 Bite 一样显示成**反抗行动**的红色，而不是白色。
   顺带把「扯掉上衣/下衣」归到 `brat`、「胸部/插入/拳交」归到 `sub`，与原版同类动作一致。
-- 挂点：`<<widget "mouthActions">>` 的 `_mouthaction` 重置之后 → `<<combatActionsExtRegister "mouth">>`；野兽战不注册；
+- 挂点：`<<widget "mouthActions">>` 的 `_mouthaction` 重置之后 → `<<combatActionsExtRegister "mouth">>`；
   结算在 effectsman 的 `<<combatActionsExt>>` 里消费 `$mouthaction`
 
 ## 战斗里脱对方的衣服（v0.4.0 新增，v0.8.0 改为原版 Undress 机制）
@@ -92,7 +92,7 @@ v0.8.0 起脱衣动作改为**参考原版性行为里的 `Undress:` 动作**（
 
 ## 安装
 
-1. 游戏内 ModLoader → 添加 zip → 选 `CombatActionsExt_v0.9.2.zip`
+1. 游戏内 ModLoader → 添加 zip → 选 `CombatActionsExt_v0.9.3.zip`
 2. 刷新页面
 3. 前置：ModLoader（0.5.x 自带）+ TweeReplacer
 
@@ -122,24 +122,3 @@ pwsh -File .\build-actions.ps1
 - 非官方模组，《Degrees of Lewdity》版权归 **Vrelnir** 所有，请支持正版
 - 本 mod 只含自写代码与文本，不含任何游戏资源；免费发布、禁止商用
 - 反馈：附 mod 版本号 + F12 控制台 `[CombatActionsExt]` 或报错原文
-
-## 更新记录
-
-### v0.9.2
-
-- **野兽战 / 多目标战修复**：`combatActionsExtDo` 开头对目标 NPC 做存在性判断，`$NPCList` 没有对应条目时动作标记为 `invalid` 直接跳过，不再抛
-  `Cannot read properties of undefined (reading 'vagina')`
-- 注册阶段左/右/脚三处对无效目标做保护（`_caeNPC` 置 0，属性访问安全返回 undefined）
-- **调度器（`<<combatActionsExt>>`）整体只在 `$enemytype is "man"` 时执行**，野兽战斗完全不走本 mod 的结算，避免旧默认动作被消费
-
-### v0.9.1
-
-- 「咬」的注册限定人类战斗（`$enemytype is "man"`），与其它动作一致
-- 结算入口 `combatActionsExtDo` 增加无效目标保护
-
-### v0.9.0
-
-- 新增「插入小穴 → 继续指奸 → 拳交 → 继续拳交」
-- 新增「脚揉胸部 → 继续揉胸」可持续动作
-- 脱衣动作改为参考原版 `Undress` 机制（`combatSkillCheck` + `<<npcUndressText>>` / `<<npcRevealText>>`）
-- 修正动作颜色分类（咬=def 反抗 / 脱衣=brat / 性行为=sub）

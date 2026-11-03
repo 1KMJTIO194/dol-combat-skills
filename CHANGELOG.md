@@ -1,5 +1,16 @@
 # 更新日志
 
+## 2026-11-03 LocationsExt v1.7.4：衣柜关闭选项不再消失（原版 wardrobeExits 机制）
+
+- **修复：旅店/公寓衣柜里换装一次后，「关上衣柜」选项消失**
+  - 原因：原版衣柜 JS 每次交互后会执行 `$('#wardrobeExits').html(new Wikifier(null, "<<wardrobeExits>>").output)` 刷新出口；
+    `wardrobeExits` widget 按 `$passage` 分支，而我们的自定义衣柜段落不在分支里 → 刷新后出口为空
+  - 修复：构建脚本新增第 4 条 TweeReplacer 补丁，给 `Widgets Wardrobe` 的 `wardrobeExits` widget 增加：
+    `<<case "Inn Wardrobe">>` → 「关上衣柜」回 `Inn Room`；`<<case "Flats Own Wardrobe">>` → 「关上衣柜」回 `Flats Own Room`
+  - 两个衣柜段落改为原版写法 `<div id="wardrobeExits"><<wardrobeExits>></div>`
+- 实测：打开衣柜 → 模拟/多次换装刷新出口 → 「关上衣柜」始终存在且可点回房间；原版 `Wardrobe`（孤儿院）不受影响
+- 探针新增：两个衣柜段落使用 `<<wardrobeExits>>`
+
 ## 2026-11-02 LocationsExt v1.7.3：旅店原版式上床方式 + 衣柜
 
 - **旅店房间补上原版孤儿院床的三种上床方式**
@@ -54,6 +65,21 @@
 - CombatSkills 保持 **v1.13.2**（本次未改动）
 - 仓库新增 `build-actions.ps1` / `build-locations.ps1`，三个 mod 可分别单独构建
 
+## actions-v0.9.3
+
+- **修复严重报错**：`combatActionsExtDo` 里把目标 NPC 临时变量误写成 `$_caeNPC`（story 变量），
+  读取 `undefined.vagina` 抛 `TypeError` —— 在 Bus Seat Rape 等场景触发
+  `<<effectsman>>: errors within widget code ... Cannot read properties of undefined (reading 'vagina')`
+- 修正为临时变量 `_caeNPC`（24 处），并把动作结算的目标守卫拆成 `_caeHasNPC` / `_caeNeedsNPC`：
+  无 NPCList 条目的场景只跳过需要目标的动作（咬/高潮选择仍可用）
+- 构建脚本新增防回归自检：twee 里禁止出现 `$_cae*` 前缀；必须包含目标 NPC 守卫
+## v1.13.3
+
+- **修复严重数值 bug**：战斗掉落的「赃款」单位错误 —— `$blackmoney` 字段单位是英镑
+  （游戏 `Pub Sell` 销赃时 `<<money $blackmoney * 100>>`），旧版把便士（500~1500）直接加进去，
+  导致销赃时金额 ×100（£15 变 £1500）
+- 现在先 `_clPounds = Math.floor(_clAmount / 100)` 再累加（£5~£15 正常），汇总面板仍按便士累加显示
+- README 增加旧存档修复用的控制台一行代码
 ## v1.13.2
 
 - 特征面板改为**运行期 JS 注入**：监听特征覆盖层（`#customOverlayContent`）渲染，

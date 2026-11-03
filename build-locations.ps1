@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.7.3'
+$Version   = '1.7.4'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -91,6 +91,14 @@ $patchSpecs = @(
         replace = '<<if $eventskip is 1>><br><<link [[快速旅行|Forest Fast Travel]]>><</link>><br><</if>><<set $eventskip to 0>>'
         check   = '<<link [[快速旅行|Forest Fast Travel]]>>'
         checkAll = @('[[快速旅行|Forest Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '衣柜退出（旅店 / 公寓）'
+        passage = 'Widgets Wardrobe'
+        find    = '<<case "Prison Wardrobe">>'
+        replace = '<<case "Inn Wardrobe">><<link [[关上衣柜|Inn Room]]>><<cleanupOnWardrobeExit>><</link>><<case "Flats Own Wardrobe">><<link [[关上衣柜|Flats Own Room]]>><<cleanupOnWardrobeExit>><</link>><<case "Prison Wardrobe">>'
+        check   = '<<case "Inn Wardrobe">>'
+        checkAll = @('<<case "Flats Own Wardrobe">>', '[[关上衣柜|Inn Room]]', '[[关上衣柜|Flats Own Room]]')
     }
 )
 
@@ -167,7 +175,7 @@ $required = [ordered]@{
     '原版脱衣存储'      = '<<undressSleep "wardrobe">>'
     '原版穿睡衣'        = '<<wearoutfit>>'
     '衣柜链接'          = '[[衣柜|Inn Wardrobe]]'
-    '关上衣柜'          = '[[关上衣柜|Inn Room]]'
+    '原版衣柜退出widget' = '<<wardrobeExits>>'
     '原版睡眠时长链接'  = '<<generateSleepLinks "Inn Sleep">>'
     '原版恶梦检查'      = '<<nightmareCheck "Inn Sleep">>'
     '原版睡眠效果'      = '<<sleepeffects>>'
@@ -198,7 +206,6 @@ $required = [ordered]@{
     '洗澡宏'            = '<<wash>>'
     '衣柜选择宏'        = '<<wardrobeSelection>>'
     '衣柜穿戴宏'        = '<<wardrobewear>>'
-    '衣柜退出清理'      = '<<cleanupOnWardrobeExit>>'
     '衣柜位置变量'      = '$wardrobe_location to "wardrobe"'
     '床垫升级状态'      = '$caeFlatsBed'
     '淋浴升级状态'      = '$caeFlatsBath'

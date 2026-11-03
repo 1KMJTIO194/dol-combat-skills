@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.13.2'
+$Version = '1.13.3'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -271,7 +271,7 @@ $lootChecks = [ordered]@{
     '掉钱走游戏 money 接口'   = '<<money _clCash "thievery">>'
     '避孕套用 $condoms'       = '$condoms += _clAmount'
     '喷雾用 <<spray 1>>'      = '<<spray 1>>'
-    '零钱用 $blackmoney'      = '$blackmoney += _clAmount'
+    '零钱用 $blackmoney'      = '$blackmoney += _clPounds'
     '按 NPC 类型分流'         = '$NPCList[_clIndex].type is "man"'
     '按 NPC 幂等（.looted）'  = '!$NPCList[_clIndex].looted'
     '1v1 胜利补发的胜利判定'  = '$enemyhealth lte 0'
@@ -305,6 +305,7 @@ $clubChecks = [ordered]@{
     '陪练收入 £20~40（便士单位）' = '<<set _pay to 2000 + (random(0, 20) * 100)>>'
     '掉落现金 £10~30（便士单位）' = '<<set _clCash to 1000 + (random(0, 20) * 100)>>'
     '赃款 £5~15（便士单位）'     = '<<set _clAmount to 500 + (random(0, 10) * 100)>>'
+    '赃款便士→英镑折算'          = '<<set _clPounds to Math.floor(_clAmount / 100)>>'
     '战利品：NPCList 类型保护'   = 'typeof $NPCList is "object"'
     '战利品：人类判定含 human'   = '$NPCList[_clIndex].type is "human"'
     '战利品：清单类型保护'       = 'typeof $combatLootLog.push isnot "function"'

@@ -13,7 +13,7 @@
  * ==========================================================================*/
 (function () {
 	var TAG = "[LocationsExt]";
-	var VERSION = "1.7.3";
+	var VERSION = "1.7.4";
 	window.LocationsExt_version = VERSION;
 	console.log(TAG + " v" + VERSION + " 已加载（探针脚本）");
 
@@ -59,6 +59,8 @@
 		c("旅店：衣柜链接", innRoom.indexOf("|Inn Wardrobe]]") >= 0);
 		c("旅店：脱光上床", innRoom.indexOf("脱光并爬到床上") >= 0);
 		c("旅店：睡衣列表 widget", locWidgets.indexOf("caeInnSleepOutfits") >= 0 || innRoom.indexOf("caeInnSleepOutfits") >= 0);
+		c("旅店衣柜使用原版 wardrobeExits", innWardrobe.indexOf("<<wardrobeExits>>") >= 0);
+		c("公寓衣柜使用原版 wardrobeExits", passageText("Flats Own Wardrobe").indexOf("<<wardrobeExits>>") >= 0);
 		c("Flats Room Sale 段落存在（公寓房间）", flats.length > 0);
 		c("Forest Fast Travel 段落存在", forest.length > 0);
 		c("森林快速旅行：含湖泊目的地", forest.indexOf("湖泊") >= 0);
