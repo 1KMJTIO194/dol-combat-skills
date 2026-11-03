@@ -136,7 +136,9 @@ v1.2.0 及更早的存档里第三项叫 `dodge`，载入时会**自动迁移**�
 - 陪练的疼痛会被**防御力减免**（每 1 点 −1%），防御越高越耐打——这是本 mod 数值接入的自然联动。
 - **货币单位提醒**：DoL 的 `$money` 以**便士**存储（`£1 = 100`，官方 `Labour value: £10` 对应 `<<money 1000>>`）。
   本 mod 所有金额都按这个单位写：训练费 `2000`（£20）、陪练收入 `2000~4000`（£20~40）、
-  掉落现金 `1000~3000`（£10~30）、赃款 `500~1500`（£5~15）；显示时统一 `<<print (值 / 100)>>`。
+  掉落现金 `1000~3000`（便士，£10~30，直接进 `<<money>>`）、赃款 `500~1500`（便士，£5~15）。
+**注意：`$blackmoney`（赃款字段）的单位是英镑**——游戏 `Pub Sell` 销赃时是 `<<money $blackmoney * 100>>`，
+所以本 mod 会先 `_clPounds = Math.floor(_clAmount / 100)` 再累加（v1.13.3 修复：早期版本把便士直接加进该字段，销赃时会 ×100）。
 - 只新增一个惰性初始化的计数 `$boxingClub = { spars, sessions }`（用于大厅台词变化），其余全部走游戏原有系统。
 - 更衣室的衣柜用的是游戏自己的 `Changing Room` 段落，退出链接通过 `$wardrobeExit` 指回更衣室，不会把玩家丢到别处。
 
@@ -390,6 +392,24 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 攻击力改成加算，或给每点系数换个数值（改 `build.ps1` 的对应 `replace`）。
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
+
+## 已修：赃款（$blackmoney）单位错误导致销赃 ×100（v1.13.3）
+
+**现象**：战斗内提示「£15 零钱（记为赃款）」，但销赃时（丰收街酒吧 Landry 的 `Pub Sell`）拿到 £1500。
+
+**原因**：`$blackmoney` 字段的单位是**英镑**（游戏 `Pub Sell` 里是 `<<money $blackmoney * 100>>`），
+旧版把便士（`_clAmount = 500~1500`）直接加进去，等于抬高了 100 倍。
+
+**v1.13.3 起**：先 `_clPounds = Math.floor(_clAmount / 100)` 再累加，§5~£15 正常。
+
+**旧存档修复**（如果赃款数字已经膨胀，且基本都是本 mod 打出来的）：
+控制台执行一次，把当前赃款除以 100：
+
+```js
+SugarCube.State.variables.blackmoney = Math.floor(SugarCube.State.variables.blackmoney / 100);
+```
+
+（如果你也在地图事件里正常攒过赃物，可以自己判断要不要修正，或只把超过 5000 的部分拉回合理范围。）
 
 ## 兼容性：特征面板消失 / TweeReplacer 报 cannot find findString（v1.13.2 已根治）
 

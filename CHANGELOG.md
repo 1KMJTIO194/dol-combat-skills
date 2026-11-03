@@ -54,6 +54,13 @@
 - CombatSkills 保持 **v1.13.2**（本次未改动）
 - 仓库新增 `build-actions.ps1` / `build-locations.ps1`，三个 mod 可分别单独构建
 
+## v1.13.3
+
+- **修复严重数值 bug**：战斗掉落的「赃款」单位错误 —— `$blackmoney` 字段单位是英镑
+  （游戏 `Pub Sell` 销赃时 `<<money $blackmoney * 100>>`），旧版把便士（500~1500）直接加进去，
+  导致销赃时金额 ×100（£15 变 £1500）
+- 现在先 `_clPounds = Math.floor(_clAmount / 100)` 再累加（£5~£15 正常），汇总面板仍按便士累加显示
+- README 增加旧存档修复用的控制台一行代码
 ## v1.13.2
 
 - 特征面板改为**运行期 JS 注入**：监听特征覆盖层（`#customOverlayContent`）渲染，
