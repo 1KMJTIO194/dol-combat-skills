@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'CombatActionsExt'
-$Version   = '0.9.2'
+$Version   = '0.9.3'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -188,9 +188,9 @@ $required = [ordered]@{
     '脚→肛 继续键'       = '<<set _feetaction["继续踩弄"] to "caeFeetAnusKeep">>'
     '脱上衣 动作键'      = '<<set _leftaction["脱掉上衣"] to "caeUndressUpper">>'
     '脱下衣 动作键'      = '<<set _leftaction["脱掉下衣"] to "caeUndressLower">>'
-    '原版脱衣判定'       = 'combatSkillCheck("hand", _caeT, $_caeNPC.fullDescription, 1000, $_caeNPC.clothes.upper.integrity)'
-    '原版脱衣文本'       = 'npcUndressText $_caeNPC "upper"'
-    '原版显露文本'       = 'npcRevealText $_caeNPC "upper"'
+    '原版脱衣判定'       = 'combatSkillCheck("hand", _caeT, _caeNPC.fullDescription, 1000, _caeNPC.clothes.upper.integrity)'
+    '原版脱衣文本'       = 'npcUndressText _caeNPC "upper"'
+    '原版显露文本'       = 'npcRevealText _caeNPC "upper"'
     '原版反应宏'         = 'namedNpcReaction _caeT "expose"'
     '胸部穿着判定'       = '_caeNPC.chest is "clothed"'
     '下身穿着判定'       = '_caeNPC.penis is "clothed" or _caeNPC.vagina is "clothed"'
@@ -239,6 +239,9 @@ $coloursText = [System.IO.File]::ReadAllText($ColoursPath, [System.Text.Encoding
 if (-not $coloursText.Contains('combatActionColours')) { throw 'actionColours.js 里没有 combatActionColours' }
 if (-not $coloursText.Contains('caeMouthBite')) { throw 'actionColours.js 里没有把「咬」归入 def 分类' }
 Write-Host '      动作分类脚本自检通过（咬=def 反抗 / 扯衣=brat / 性行为=sub）✓'
+if ($tweeText -match '\$_cae') { throw 'twee 里出现 $_cae 前缀变量（story 变量）——动作结算必须用临时变量 _cae*，否则读 undefined 会 TypeError' }
+if (-not $tweeText.Contains('_caeHasNPC') -or -not $tweeText.Contains('_caeNeedsNPC')) { throw 'combatActionsExtDo 缺少目标 NPC 守卫（_caeHasNPC / _caeNeedsNPC）' }
+Write-Host '      目标 NPC 守卫自检通过（不会读 undefined.vagina / 无 $_cae 前缀笔误）✓'
 
 # ---- 3) 生成 boot.json ----
 Write-Host '[3/6] 生成 boot.json ...'

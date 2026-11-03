@@ -54,6 +54,14 @@
 - CombatSkills 保持 **v1.13.2**（本次未改动）
 - 仓库新增 `build-actions.ps1` / `build-locations.ps1`，三个 mod 可分别单独构建
 
+## actions-v0.9.3
+
+- **修复严重报错**：`combatActionsExtDo` 里把目标 NPC 临时变量误写成 `$_caeNPC`（story 变量），
+  读取 `undefined.vagina` 抛 `TypeError` —— 在 Bus Seat Rape 等场景触发
+  `<<effectsman>>: errors within widget code ... Cannot read properties of undefined (reading 'vagina')`
+- 修正为临时变量 `_caeNPC`（24 处），并把动作结算的目标守卫拆成 `_caeHasNPC` / `_caeNeedsNPC`：
+  无 NPCList 条目的场景只跳过需要目标的动作（咬/高潮选择仍可用）
+- 构建脚本新增防回归自检：twee 里禁止出现 `$_cae*` 前缀；必须包含目标 NPC 守卫
 ## v1.13.3
 
 - **修复严重数值 bug**：战斗掉落的「赃款」单位错误 —— `$blackmoney` 字段单位是英镑

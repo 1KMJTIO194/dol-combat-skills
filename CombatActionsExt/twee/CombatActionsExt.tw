@@ -1,6 +1,6 @@
 :: CombatActionsExt Widgets [widget]
 /* ============================================================================
-   CombatActionsExt v0.9.2 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
+   CombatActionsExt v0.9.3 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
    ----------------------------------------------------------------------------
    出现条件：战斗中（$combat is 1）、对方是人类（$enemytype is "man"）、非 stalk 位置，
              且对应部位已暴露：
@@ -216,15 +216,19 @@
 	<<if _caeT is undefined or _caeT is "self" or _caeT is "beasts" or _caeT is "tentacles" or _caeT is "beast">><<set _caeT to 0>><</if>>
 	<<set _caeCons to ($consensual is 1)>>
 	<<set _caeNPC to $NPCList[_caeT]>>
-	/* 野兽/无 NPCList 条目的战斗：目标无效，动作直接跳过，避免读 undefined 报错 */
-	<<if _caeNPC is undefined or _caeNPC is null>>
-		<<set _caeAct to "invalid">>
+	/* 目标 NPC 守卫：部分场景（如 Bus Seat Rape 等强奸/猥亵场景）没有 $NPCList 条目，
+	   或动作目标已失效。此时不要读 _caeNPC 的字段（会 TypeError），只允许不需要目标的动作。
+	   另外带「$」前缀的 _caeNPC 是 story 变量，这里必须用临时变量 _caeNPC（v0.9.3 修） */
+	<<set _caeHasNPC to (typeof _caeNPC is "object" and _caeNPC isnot null and _caeNPC isnot undefined)>>
+	<<if _caeHasNPC>>
+		<<set _caeLowerFree to ((_caeNPC.vagina is 0 or _caeNPC.vagina is "none") and (_caeNPC.penis is 0 or _caeNPC.penis is "none"))>>
+		<<set _caeVagFree to (_caeNPC.vagina is 0)>>
+	<<else>>
 		<<set _caeLowerFree to false>>
 		<<set _caeVagFree to false>>
-	<<else>>
-		<<set _caeLowerFree to (($_caeNPC.vagina is 0 or $_caeNPC.vagina is "none") and ($_caeNPC.penis is 0 or $_caeNPC.penis is "none"))>>
-		<<set _caeVagFree to ($_caeNPC.vagina is 0)>>
 	<</if>>
+	<<set _caeNeedsNPC to (_caeAct is "caeHandChest" or _caeAct is "caeHandVag" or _caeAct is "caeHandVagKeep" or _caeAct is "caeHandVagFist" or _caeAct is "caeHandVagFistKeep" or _caeAct is "caeHandAnus" or _caeAct is "caeHandAnusKeep" or _caeAct is "caeHandFist" or _caeAct is "caeHandFistKeep" or _caeAct is "caeFeetChest" or _caeAct is "caeFeetChestKeep" or _caeAct is "caeFeetAnus" or _caeAct is "caeFeetAnusKeep" or _caeAct is "caeUndressUpper" or _caeAct is "caeUndressLower")>>
+	<<if _caeNeedsNPC and !_caeHasNPC>><<set _caeAct to "invalid">><</if>>
 	/* 记录本场战斗用过本 mod 的动作（高潮选择只在这种战斗里出现） */
 	<<if _caeAct is "caeHandChest" or _caeAct is "caeHandVag" or _caeAct is "caeHandVagKeep" or _caeAct is "caeHandVagFist" or _caeAct is "caeHandVagFistKeep" or _caeAct is "caeHandAnus" or _caeAct is "caeHandAnusKeep" or _caeAct is "caeHandFist" or _caeAct is "caeHandFistKeep" or _caeAct is "caeFeetChest" or _caeAct is "caeFeetChestKeep" or _caeAct is "caeFeetAnus" or _caeAct is "caeFeetAnusKeep" or _caeAct is "caeUndressUpper" or _caeAct is "caeUndressLower">>
 		<<set $caeFightUsed to 1>>
@@ -433,34 +437,34 @@
 
 	/* ---- 脱衣：参考原版 Undress（chest / penis / vagina 为 "clothed" 时才可脱） ---- */
 	<<if _caeAct is "caeUndressUpper">>
-		<<if $_caeNPC.chest isnot "clothed">>
+		<<if _caeNPC.chest isnot "clothed">>
 			<br><span class="blue">对方的上身已经露出来了。</span>
-		<<elseif combatSkillCheck("hand", _caeT, $_caeNPC.fullDescription, 1000, $_caeNPC.clothes.upper.integrity)>>
+		<<elseif combatSkillCheck("hand", _caeT, _caeNPC.fullDescription, 1000, _caeNPC.clothes.upper.integrity)>>
 			<<handskilluse>><<combatpromiscuity3>><<brat 1 _caeT>>
-			<span class="lblue">你<<npcUndressText $_caeNPC "upper">>，<<npcRevealText $_caeNPC "upper">>。</span>
-			<<set $_caeNPC.chest to 0>>
+			<span class="lblue">你<<npcUndressText _caeNPC "upper">>，<<npcRevealText _caeNPC "upper">>。</span>
+			<<set _caeNPC.chest to 0>>
 			<<namedNpcReaction _caeT "expose">><<namedNpcReaction _caeT "undress">>
 			<<set $enemyanger += 25>><<set $enemytrust -= 10>>
 		<<else>>
 			<<handskilluse>>
-			<<set $_caeNPC.clothes.upper.integrity -= Math.floor(currentSkillValue("handskill") / 100)>>
+			<<set _caeNPC.clothes.upper.integrity -= Math.floor(currentSkillValue("handskill") / 100)>>
 			<<set $enemyanger += 12>><<pain 1>>
 			<br><span class="blue">你想脱下对方的上衣，但对方死死抓着衣料不放。</span>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeUndressLower">>
-		<<if $_caeNPC.penis isnot "clothed" and $_caeNPC.vagina isnot "clothed">>
+		<<if _caeNPC.penis isnot "clothed" and _caeNPC.vagina isnot "clothed">>
 			<br><span class="blue">对方的下身已经露出来了。</span>
-		<<elseif combatSkillCheck("hand", _caeT, $_caeNPC.fullDescription, 1000, $_caeNPC.clothes.lower.integrity)>>
+		<<elseif combatSkillCheck("hand", _caeT, _caeNPC.fullDescription, 1000, _caeNPC.clothes.lower.integrity)>>
 			<<handskilluse>><<combatpromiscuity3>><<brat 1 _caeT>>
-			<span class="lblue">你<<npcUndressText $_caeNPC "lower">>，<<npcRevealText $_caeNPC "lower">>。</span>
-			<<if $_caeNPC.penis is "clothed">><<npcGenitalReaction $_caeNPC>><<set $_caeNPC.penis to 0>><</if>>
-			<<if $_caeNPC.vagina is "clothed">><<set $_caeNPC.vagina to 0>><</if>>
+			<span class="lblue">你<<npcUndressText _caeNPC "lower">>，<<npcRevealText _caeNPC "lower">>。</span>
+			<<if _caeNPC.penis is "clothed">><<npcGenitalReaction _caeNPC>><<set _caeNPC.penis to 0>><</if>>
+			<<if _caeNPC.vagina is "clothed">><<set _caeNPC.vagina to 0>><</if>>
 			<<namedNpcReaction _caeT "expose">><<namedNpcReaction _caeT "undress">>
 			<<set $enemyanger += 25>><<set $enemytrust -= 10>>
 		<<else>>
 			<<handskilluse>>
-			<<set $_caeNPC.clothes.lower.integrity -= Math.floor(currentSkillValue("handskill") / 100)>>
+			<<set _caeNPC.clothes.lower.integrity -= Math.floor(currentSkillValue("handskill") / 100)>>
 			<<set $enemyanger += 12>><<pain 1>>
 			<br><span class="blue">你去扯对方的下衣，却被对方扭身躲开，衣料只被扯得更皱。</span>
 		<</if>>
