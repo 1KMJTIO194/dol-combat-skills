@@ -1,6 +1,6 @@
 :: CombatActionsExt Widgets [widget]
 /* ============================================================================
-   CombatActionsExt v0.9.3 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
+   CombatActionsExt v0.9.4 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
    ----------------------------------------------------------------------------
    出现条件：战斗中（$combat is 1）、对方是人类（$enemytype is "man"）、非 stalk 位置，
              且对应部位已暴露：
@@ -9,8 +9,8 @@
                · 小穴可插入：$NPCList[i].vagina is 0
    动作：
      左手/右手 → 对方胸部：「揉捏胸部」
-     左手/右手 → 对方小穴：「插入小穴」→「继续指奸」→「拳交」→「继续拳交」
-     左手/右手 → 对方肛门：「手指插入」→「继续指奸」→「拳交」→「继续拳交」
+     左手/右手 → 对方小穴：「手指插入小穴」→「继续指奸（小穴）」→「拳交（小穴）」→「继续拳交（小穴）」
+     左手/右手 → 对方肛门：「手指插入肛门」→「继续指奸（肛门）」→「拳交（肛门）」→「继续拳交（肛门）」
      脚（赤脚）→ 对方胸部：「脚揉胸部」→「继续揉胸」
      脚（赤脚）→ 对方肛门：「脚趾插入」→「继续踩弄」
    脱衣（参考原版性行为里的 Undress 动作）：
@@ -49,43 +49,41 @@
 			/* 脱衣：参考原版 Undress，clothing 值为 "clothed" 时才可脱 */
 			<<if _caeNPC.chest is "clothed">><<set _leftaction["脱掉上衣"] to "caeUndressUpper">><</if>>
 			<<if _caeNPC.penis is "clothed" or _caeNPC.vagina is "clothed">><<set _leftaction["脱掉下衣"] to "caeUndressLower">><</if>>
-			/* 插入 / 性行为 */
+			/* 插入 / 性行为：动作名里带上「哪个洞」，左右手同时操作时不会混淆（v0.9.4） */
 			<<if $caeLeftFist is $lefttarget>>
-				<<set _leftaction["继续拳交"] to "caeHandFistKeep">>
+				<<set _leftaction["继续拳交（肛门）"] to "caeHandFistKeep">>
 			<<elseif $caeLeftAnus is $lefttarget>>
-				<<set _leftaction["继续指奸"] to "caeHandAnusKeep">>
-				<<set _leftaction["拳交"] to "caeHandFist">>
+				<<set _leftaction["继续指奸（肛门）"] to "caeHandAnusKeep">>
+				<<set _leftaction["拳交（肛门）"] to "caeHandFist">>
 			<<elseif $caeLeftVagFist is $lefttarget>>
-				<<set _leftaction["继续拳交"] to "caeHandVagFistKeep">>
+				<<set _leftaction["继续拳交（小穴）"] to "caeHandVagFistKeep">>
 			<<elseif $caeLeftVag is $lefttarget>>
-				<<set _leftaction["继续指奸"] to "caeHandVagKeep">>
-				<<set _leftaction["拳交"] to "caeHandVagFist">>
+				<<set _leftaction["继续指奸（小穴）"] to "caeHandVagKeep">>
+				<<set _leftaction["拳交（小穴）"] to "caeHandVagFist">>
 			<<else>>
 				<<if _caeNPC.chest is 0>><<set _leftaction["揉捏胸部"] to "caeHandChest">><</if>>
-				<<if _caeNPC.vagina is 0>><<set _leftaction["插入小穴"] to "caeHandVag">><</if>>
-				<<if _caeNPC.vagina is 0 or _caeNPC.penis is 0>><<set _leftaction["手指插入"] to "caeHandAnus">><</if>>
-			<</if>>
-		<<elseif _caeSide is "right" and $rightarm is 0 and $righttarget isnot "self" and $NPCList[$righttarget] isnot undefined and $NPCList[$righttarget] isnot null>>
+				<<if _caeNPC.vagina is 0>><<set _leftaction["手指插入小穴"] to "caeHandVag">><</if>>
+				<<if _caeNPC.vagina is 0 or _caeNPC.penis is 0>><<set _leftaction["手指插入肛门"] to "caeHandAnus">><</if>>
+			<</if>>		<<elseif _caeSide is "right" and $rightarm is 0 and $righttarget isnot "self" and $NPCList[$righttarget] isnot undefined and $NPCList[$righttarget] isnot null>>
 			<<set _caeNPC to $NPCList[$righttarget]>>
 	<<if _caeNPC is undefined or _caeNPC is null>><<set _caeNPC to 0>><</if>>
 			<<if _caeNPC.chest is "clothed">><<set _rightaction["脱掉上衣"] to "caeUndressUpper">><</if>>
 			<<if _caeNPC.penis is "clothed" or _caeNPC.vagina is "clothed">><<set _rightaction["脱掉下衣"] to "caeUndressLower">><</if>>
 			<<if $caeRightFist is $righttarget>>
-				<<set _rightaction["继续拳交"] to "caeHandFistKeep">>
+				<<set _rightaction["继续拳交（肛门）"] to "caeHandFistKeep">>
 			<<elseif $caeRightAnus is $righttarget>>
-				<<set _rightaction["继续指奸"] to "caeHandAnusKeep">>
-				<<set _rightaction["拳交"] to "caeHandFist">>
+				<<set _rightaction["继续指奸（肛门）"] to "caeHandAnusKeep">>
+				<<set _rightaction["拳交（肛门）"] to "caeHandFist">>
 			<<elseif $caeRightVagFist is $righttarget>>
-				<<set _rightaction["继续拳交"] to "caeHandVagFistKeep">>
+				<<set _rightaction["继续拳交（小穴）"] to "caeHandVagFistKeep">>
 			<<elseif $caeRightVag is $righttarget>>
-				<<set _rightaction["继续指奸"] to "caeHandVagKeep">>
-				<<set _rightaction["拳交"] to "caeHandVagFist">>
+				<<set _rightaction["继续指奸（小穴）"] to "caeHandVagKeep">>
+				<<set _rightaction["拳交（小穴）"] to "caeHandVagFist">>
 			<<else>>
 				<<if _caeNPC.chest is 0>><<set _rightaction["揉捏胸部"] to "caeHandChest">><</if>>
-				<<if _caeNPC.vagina is 0>><<set _rightaction["插入小穴"] to "caeHandVag">><</if>>
-				<<if _caeNPC.vagina is 0 or _caeNPC.penis is 0>><<set _rightaction["手指插入"] to "caeHandAnus">><</if>>
-			<</if>>
-		<<elseif _caeSide is "feet" and $feettarget isnot "self" and $worn.feet.type.includes("naked") and $NPCList[$feettarget] isnot undefined and $NPCList[$feettarget] isnot null>>
+				<<if _caeNPC.vagina is 0>><<set _rightaction["手指插入小穴"] to "caeHandVag">><</if>>
+				<<if _caeNPC.vagina is 0 or _caeNPC.penis is 0>><<set _rightaction["手指插入肛门"] to "caeHandAnus">><</if>>
+			<</if>>		<<elseif _caeSide is "feet" and $feettarget isnot "self" and $worn.feet.type.includes("naked") and $NPCList[$feettarget] isnot undefined and $NPCList[$feettarget] isnot null>>
 			<<set _caeNPC to $NPCList[$feettarget]>>
 	<<if _caeNPC is undefined or _caeNPC is null>><<set _caeNPC to 0>><</if>>
 			<<if $caeFeetAnus is $feettarget>>
@@ -130,47 +128,50 @@
 <</widget>>
 
 <<widget "combatActionsExt">><<if $enemytype is "man">>
-	/* 每回合在 effectsman 开头：维护插入状态 → 消费本回合选中的动作 */
+	/* 每回合在 effectsman 开头：维护插入状态 → 显示当前插了什么 → 消费本回合选中的动作 */
+	/* 关键：判断「是否继续插着」时必须放行「手指→拳交」那一步（*Keep 和 *Fist），
+	   否则手指状态会在拳交动作执行前被清掉，导致拳交永远失败（v0.9.4 修）。 */
 	<<if $caeLeftFist isnot undefined and $leftaction isnot "caeHandFistKeep" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
 		<<unset $caeLeftFist>>
-		<br><span class="blue">你把拳头从对方体内抽了出来。</span>
+		<br><span class="blue">你把左手的拳头从对方肛门里抽了出来。</span>
 	<</if>>
-	<<if $caeLeftAnus isnot undefined and $leftaction isnot "caeHandAnusKeep" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
+	<<if $caeLeftAnus isnot undefined and $leftaction isnot "caeHandAnusKeep" and $leftaction isnot "caeHandFist" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
 		<<unset $caeLeftAnus>>
-		<br><span class="blue">你把手从对方体内抽了出来。</span>
+		<br><span class="blue">你把左手的两根手指从对方肛门里抽了出来。</span>
 	<</if>>
 	<<if $caeLeftVagFist isnot undefined and $leftaction isnot "caeHandVagFistKeep" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
 		<<unset $caeLeftVagFist>>
-		<br><span class="blue">你把拳头从对方的小穴里抽了出来。</span>
+		<br><span class="blue">你把左手的拳头从对方小穴里抽了出来。</span>
 	<</if>>
-	<<if $caeLeftVag isnot undefined and $leftaction isnot "caeHandVagKeep" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
+	<<if $caeLeftVag isnot undefined and $leftaction isnot "caeHandVagKeep" and $leftaction isnot "caeHandVagFist" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight">>
 		<<unset $caeLeftVag>>
-		<br><span class="blue">你把手从对方的小穴里抽了出来。</span>
+		<br><span class="blue">你把左手的两根手指从对方小穴里抽了出来。</span>
 	<</if>>
 	<<if $caeRightFist isnot undefined and $rightaction isnot "caeHandFistKeep" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
 		<<unset $caeRightFist>>
-		<br><span class="blue">你把拳头从对方体内抽了出来。</span>
+		<br><span class="blue">你把右手的拳头从对方肛门里抽了出来。</span>
 	<</if>>
-	<<if $caeRightAnus isnot undefined and $rightaction isnot "caeHandAnusKeep" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
+	<<if $caeRightAnus isnot undefined and $rightaction isnot "caeHandAnusKeep" and $rightaction isnot "caeHandFist" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
 		<<unset $caeRightAnus>>
-		<br><span class="blue">你把手从对方体内抽了出来。</span>
+		<br><span class="blue">你把右手的两根手指从对方肛门里抽了出来。</span>
 	<</if>>
 	<<if $caeRightVagFist isnot undefined and $rightaction isnot "caeHandVagFistKeep" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
 		<<unset $caeRightVagFist>>
-		<br><span class="blue">你把拳头从对方的小穴里抽了出来。</span>
+		<br><span class="blue">你把右手的拳头从对方小穴里抽了出来。</span>
 	<</if>>
-	<<if $caeRightVag isnot undefined and $rightaction isnot "caeHandVagKeep" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
+	<<if $caeRightVag isnot undefined and $rightaction isnot "caeHandVagKeep" and $rightaction isnot "caeHandVagFist" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
 		<<unset $caeRightVag>>
-		<br><span class="blue">你把手从对方的小穴里抽了出来。</span>
+		<br><span class="blue">你把右手的两根手指从对方小穴里抽了出来。</span>
 	<</if>>
 	<<if $caeFeetAnus isnot undefined and $feetaction isnot "caeFeetAnusKeep" and $leftaction isnot "caeClimaxContinue" and $leftaction isnot "caeEndFight" and $rightaction isnot "caeClimaxContinue" and $rightaction isnot "caeEndFight">>
 		<<unset $caeFeetAnus>>
-		<br><span class="blue">你把脚从对方臀缝间收了回来。</span>
+		<br><span class="blue">你把脚趾从对方肛门里抽了出来。</span>
 	<</if>>
 	<<if $caeFeetChest isnot undefined and $feetaction isnot "caeFeetChestKeep">>
 		<<unset $caeFeetChest>>
 		<br><span class="blue">你把脚从对方胸口移开了。</span>
 	<</if>>
+	/* 当前插入状态：明确显示「哪只手 + 什么部位 + 插在哪个洞」 */
 	<<if $leftaction is "caeHandChest" or $leftaction is "caeHandVag" or $leftaction is "caeHandVagKeep" or $leftaction is "caeHandVagFist" or $leftaction is "caeHandVagFistKeep" or $leftaction is "caeHandAnus" or $leftaction is "caeHandAnusKeep" or $leftaction is "caeHandFist" or $leftaction is "caeHandFistKeep" or $leftaction is "caeUndressUpper" or $leftaction is "caeUndressLower" or $leftaction is "caeClimaxContinue" or $leftaction is "caeEndFight">>
 		<<set _caeAct to $leftaction>>
 		<<set _caeT to $lefttarget>>
@@ -197,6 +198,18 @@
 		<<set $feetaction to 0>><<set $feetactiondefault to "rest">>
 		<<combatActionsExtDo _caeAct _caeT>>
 	<</if>>
+	<<set _caeStatusList to []>>
+	<<if $caeLeftVag isnot undefined>><<run _caeStatusList.push("左手的两根手指插在对方小穴里")>><</if>>
+	<<if $caeLeftVagFist isnot undefined>><<run _caeStatusList.push("左手的拳头插在对方小穴里")>><</if>>
+	<<if $caeLeftAnus isnot undefined>><<run _caeStatusList.push("左手的两根手指插在对方肛门里")>><</if>>
+	<<if $caeLeftFist isnot undefined>><<run _caeStatusList.push("左手的拳头插在对方肛门里")>><</if>>
+	<<if $caeRightVag isnot undefined>><<run _caeStatusList.push("右手的两根手指插在对方小穴里")>><</if>>
+	<<if $caeRightVagFist isnot undefined>><<run _caeStatusList.push("右手的拳头插在对方小穴里")>><</if>>
+	<<if $caeRightAnus isnot undefined>><<run _caeStatusList.push("右手的两根手指插在对方肛门里")>><</if>>
+	<<if $caeRightFist isnot undefined>><<run _caeStatusList.push("右手的拳头插在对方肛门里")>><</if>>
+	<<if $caeFeetAnus isnot undefined>><<run _caeStatusList.push("脚趾插在对方肛门里")>><</if>>
+	<<if $caeFeetChest isnot undefined>><<run _caeStatusList.push("脚踩在对方胸口上")>><</if>>
+	<<if _caeStatusList.length gt 0>><br><span class="blue">现在：<<print _caeStatusList.join("；")>>。</span><</if>>
 <</if>><</widget>>
 
 <<widget "combatActionsExtClear">>
@@ -213,7 +226,7 @@
 	<<set _caeAct to _args[0]>>
 	<<set _caeT to _args[1]>>
 	<<set _caeSide to _args[2]>>
-	<<if _caeT is undefined or _caeT is "self" or _caeT is "beasts" or _caeT is "tentacles" or _caeT is "beast">><<set _caeT to 0>><</if>>
+	<<if _caeSide is "left">><<set _caeHandCN to "左手">><<elseif _caeSide is "right">><<set _caeHandCN to "右手">><<else>><<set _caeHandCN to "手">><</if>>	<<if _caeT is undefined or _caeT is "self" or _caeT is "beasts" or _caeT is "tentacles" or _caeT is "beast">><<set _caeT to 0>><</if>>
 	<<set _caeCons to ($consensual is 1)>>
 	<<set _caeNPC to $NPCList[_caeT]>>
 	/* 目标 NPC 守卫：部分场景（如 Bus Seat Rape 等强奸/猥亵场景）没有 $NPCList 条目，
@@ -258,7 +271,7 @@
 		<</if>>
 	<</if>>
 
-	/* ---- 手 → 小穴（插入 / 继续 / 拳交） ---- */
+	/* ---- 手 → 小穴：手指插入小穴 → 继续指奸（小穴）→ 拳交（小穴）→ 继续拳交（小穴） ---- */
 	<<if _caeAct is "caeHandVag">>
 		<<handskilluse>>
 		<<if combatSkillCheck("hand", _caeT)>>
@@ -268,22 +281,22 @@
 				<<set $enemyarousal += (65 + random(0, 45))>>
 				<<arousal 55>>
 				<<if _caeCons>><<set $enemytrust += 2>><<set $enemyanger -= 5>><<else>><<set $enemyanger += 18>><<set $enemytrust -= 8>><</if>>
-				<br><span class="lblue">你把手指探进<<hisselect _caeT>>的小穴，湿热的肉壁立刻缠了上来。</span>
+				<br><span class="lblue">你把<<print _caeHandCN>>的两根手指探进<<hisselect _caeT>>的小穴，湿热的肉壁立刻缠了上来。</span>
 			<<else>>
-				<br><span class="blue">你想把手指插进<<hisselect _caeT>>的小穴，但那里已经被占着了。</span>
+				<br><span class="blue">你想把<<print _caeHandCN>>的两根手指插进<<hisselect _caeT>>的小穴，但小穴里已经被别的东西占着了。</span>
 			<</if>>
 		<<else>>
 			<<if _caeCons>>
-				<br><span class="blue">你的手刚碰到<<hisselect _caeT>>的腿间，对方就红着脸夹紧了双腿。</span>
+				<br><span class="blue">你的<<print _caeHandCN>>刚碰到<<hisselect _caeT>>的腿间，对方就红着脸夹紧了双腿。</span>
 			<<else>>
 				<<set $enemyanger += 15>><<pain 2>>
-				<br><span class="blue">你的手刚摸到<<hisselect _caeT>>的腿间，就被对方猛地合拢双腿夹住。</span>
+				<br><span class="blue">你的<<print _caeHandCN>>刚摸到<<hisselect _caeT>>的腿间，就被对方猛地合拢双腿夹住。</span>
 			<</if>>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeHandVagKeep">>
 		<<if (_caeSide is "left" and $caeLeftVag isnot _caeT) or (_caeSide is "right" and $caeRightVag isnot _caeT)>>
-			<br><span class="blue">你的手指已经不在对方小穴里了。</span>
+			<br><span class="blue">你的<<print _caeHandCN>>两根手指已经不在对方的小穴里了。</span>
 		<<else>>
 			<<handskilluse>>
 			<<if combatSkillCheck("hand", _caeT)>>
@@ -291,20 +304,20 @@
 				<<set $enemyarousal += (60 + random(0, 40))>>
 				<<arousal 50>>
 				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 8>><<set $enemytrust -= 4>><</if>>
-				<br><span class="lblue">你的手指在<<hisselect _caeT>>的小穴里抽送，指尖一次次蹭过最敏感的地方。</span>
+				<br><span class="lblue">你的<<print _caeHandCN>>两根手指在<<hisselect _caeT>>的小穴里抽送，指尖一次次蹭过最敏感的地方。</span>
 			<<else>>
 				<<if _caeSide is "left">><<unset $caeLeftVag>><<else>><<unset $caeRightVag>><</if>>
 				<<set $enemyanger += 5>>
-				<br><span class="blue">对方猛地夹紧又松开，把你的手指挤了出来。</span>
+				<br><span class="blue">对方猛地夹紧又松开，把你的<<print _caeHandCN>>手指挤出小穴，滑了出来。</span>
 			<</if>>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeHandVagFist">>
 		<<handskilluse>>
 		<<if (_caeSide is "left" and $caeLeftVag isnot _caeT) or (_caeSide is "right" and $caeRightVag isnot _caeT)>>
-			<br><span class="blue">得先把手指插进去，才能慢慢把整只手塞进去。</span>
+			<br><span class="blue">得先把<<print _caeHandCN>>手指插进对方的小穴，才能继续把整只手塞进去。</span>
 		<<elseif !_caeVagFree>>
-			<br><span class="blue">你想把整只手塞进去，但那里已经被别的东西占着了。</span>
+			<br><span class="blue">你想把<<print _caeHandCN>>整只手塞进对方的小穴，但小穴里已经被别的东西占着了。</span>
 		<<elseif combatSkillCheck("hand", _caeT)>>
 			<<submission 20>>
 			<<if _caeSide is "left">>
@@ -316,18 +329,18 @@
 			<<arousal 70>>
 			<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 25>><<set $enemytrust -= 12>><</if>>
 			<<if _caeCons>>
-				<br><span class="lblue">你并拢五指，一点点挤进<<hisselect _caeT>>的小穴，直到整只手都没入，才慢慢握成拳。</span>
+				<br><span class="lblue">你把<<print _caeHandCN>>并拢的手指一点点挤进<<hisselect _caeT>>的小穴，直到整只手都没入，才慢慢握成拳。</span>
 			<<else>>
-				<br><span class="lblue">你硬把整只手塞进<<hisselect _caeT>>的小穴，攥成拳头，对方痛得弓起背来，声音都变了调。</span>
+				<br><span class="lblue">你硬把<<print _caeHandCN>>整只手塞进<<hisselect _caeT>>的小穴，攥成拳头，对方痛得弓起背来，声音都变了调。</span>
 			<</if>>
 		<<else>>
 			<<set $enemyanger += 10>>
-			<br><span class="blue">你试着把整只手塞进去，但对方的身体太紧，只进到手腕就被卡住了。</span>
+			<br><span class="blue">你试着把<<print _caeHandCN>>整只手塞进对方的小穴，但小穴太紧，只进到手腕就被卡住了。</span>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeHandVagFistKeep">>
 		<<if (_caeSide is "left" and $caeLeftVagFist isnot _caeT) or (_caeSide is "right" and $caeRightVagFist isnot _caeT)>>
-			<br><span class="blue">你的拳头已经不在对方小穴里了。</span>
+			<br><span class="blue">你的<<print _caeHandCN>>拳头已经不在对方的小穴里了。</span>
 		<<else>>
 			<<handskilluse>>
 			<<if combatSkillCheck("hand", _caeT)>>
@@ -335,16 +348,16 @@
 				<<set $enemyarousal += (100 + random(0, 50))>>
 				<<arousal 60>>
 				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
-				<br><span class="lblue">你的拳头在<<hisselect _caeT>>的小穴里缓缓转动，指节一下下碾过内壁。</span>
+				<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的小穴里缓缓转动，指节一下下碾过内壁。</span>
 			<<else>>
 				<<if _caeSide is "left">><<unset $caeLeftVagFist>><<else>><<unset $caeRightVagFist>><</if>>
 				<<set $enemyanger += 8>>
-				<br><span class="blue">对方猛地一夹，把你的拳头挤了出来。</span>
+				<br><span class="blue">对方猛地一夹，把你的<<print _caeHandCN>>拳头挤出小穴，滑了出来。</span>
 			<</if>>
 		<</if>>
 	<</if>>
 
-	/* ---- 手 → 肛门（插入 / 继续） ---- */
+	/* ---- 手 → 肛门：手指插入肛门 → 继续指奸（肛门）→ 拳交（肛门）→ 继续拳交（肛门） ---- */
 	<<if _caeAct is "caeHandAnus">>
 		<<handskilluse>>
 		<<if _caeCons>>
@@ -357,22 +370,22 @@
 				<<set $enemyarousal += (60 + random(0, 40))>>
 				<<arousal 50>>
 				<<if _caeCons>><<set $enemytrust += 2>><<set $enemyanger -= 5>><<else>><<set $enemyanger += 18>><<set $enemytrust -= 8>><</if>>
-				<br><span class="lblue">你把手指插进<<hisselect _caeT>>的肛门，指节一节一节没入，直到整根没到底。</span>
+				<br><span class="lblue">你把<<print _caeHandCN>>的两根手指插进<<hisselect _caeT>>的肛门，指节一节一节没入，直到整根都没到底。</span>
 			<<else>>
-				<br><span class="blue">你想把手指插进<<hisselect _caeT>>的肛门，但入口已经被占着了。</span>
+				<br><span class="blue">你想把<<print _caeHandCN>>的两根手指插进<<hisselect _caeT>>的肛门，但肛门入口已经被别的东西占着了。</span>
 			<</if>>
 		<<else>>
 			<<if _caeCons>>
-				<br><span class="blue">你的手指刚碰到<<hisselect _caeT>>的臀缝，对方就红着脸扭身躲了开去。</span>
+				<br><span class="blue">你的<<print _caeHandCN>>手指刚碰到<<hisselect _caeT>>的臀缝，对方就红着脸扭身躲了开去。</span>
 			<<else>>
 				<<set $enemyanger += 15>><<pain 2>>
-				<br><span class="blue">你的手指刚摸到<<hisselect _caeT>>的臀缝，就被对方猛地扭身甩开。</span>
+				<br><span class="blue">你的<<print _caeHandCN>>手指刚摸到<<hisselect _caeT>>的臀缝，就被对方猛地扭身甩开。</span>
 			<</if>>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeHandAnusKeep">>
 		<<if (_caeSide is "left" and $caeLeftAnus isnot _caeT) or (_caeSide is "right" and $caeRightAnus isnot _caeT)>>
-			<br><span class="blue">你的手指已经不在对方体内了。</span>
+			<br><span class="blue">你的<<print _caeHandCN>>手指已经不在对方的肛门里了。</span>
 		<<else>>
 			<<handskilluse>>
 			<<if combatSkillCheck("hand", _caeT)>>
@@ -380,22 +393,20 @@
 				<<set $enemyarousal += (55 + random(0, 45))>>
 				<<arousal 45>>
 				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 8>><<set $enemytrust -= 4>><</if>>
-				<br><span class="lblue">你的手指在<<hisselect _caeT>>的肛门里抽送，指腹一遍遍蹭过内壁。</span>
+				<br><span class="lblue">你的<<print _caeHandCN>>两根手指在<<hisselect _caeT>>的肛门里抽送，指腹一遍遍蹭过内壁。</span>
 			<<else>>
 				<<if _caeSide is "left">><<unset $caeLeftAnus>><<else>><<unset $caeRightAnus>><</if>>
 				<<set $enemyanger += 5>>
-				<br><span class="blue">对方猛地一缩，把你的手指挤了出来。</span>
+				<br><span class="blue">对方猛地一缩，把你的<<print _caeHandCN>>手指挤出肛门，滑了出来。</span>
 			<</if>>
 		<</if>>
 	<</if>>
-
-	/* ---- 手指插入后 → 拳交（肛门） ---- */
 	<<if _caeAct is "caeHandFist">>
 		<<handskilluse>>
 		<<if (_caeSide is "left" and $caeLeftAnus isnot _caeT) or (_caeSide is "right" and $caeRightAnus isnot _caeT)>>
-			<br><span class="blue">得先把手指插进去，才能慢慢把整只手塞进去。</span>
+			<br><span class="blue">得先把<<print _caeHandCN>>手指插进对方肛门，才能继续把整只手塞进去。</span>
 		<<elseif !_caeLowerFree>>
-			<br><span class="blue">你想把整只手塞进去，但那里已经被别的东西占着了。</span>
+			<br><span class="blue">你想把<<print _caeHandCN>>整只手塞进对方肛门，但肛门里已经被别的东西占着了。</span>
 		<<elseif combatSkillCheck("hand", _caeT)>>
 			<<submission 20>>
 			<<if _caeSide is "left">>
@@ -407,18 +418,18 @@
 			<<arousal 70>>
 			<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 25>><<set $enemytrust -= 12>><</if>>
 			<<if _caeCons>>
-				<br><span class="lblue">你并拢五指，一点点挤进<<hisselect _caeT>>的肛门，直到整只手都没入，才慢慢握成拳。</span>
+				<br><span class="lblue">你把<<print _caeHandCN>>并拢的手指一点点挤进<<hisselect _caeT>>的肛门，直到整只手都没入，才慢慢握成拳。</span>
 			<<else>>
-				<br><span class="lblue">你硬把整只手塞进<<hisselect _caeT>>的肛门，攥成拳头，对方痛得弓起背来，叫都变了调。</span>
+				<br><span class="lblue">你硬把<<print _caeHandCN>>整只手塞进<<hisselect _caeT>>的肛门，攥成拳头，对方痛得弓起背来，叫都变了调。</span>
 			<</if>>
 		<<else>>
 			<<set $enemyanger += 10>>
-			<br><span class="blue">你试着把整只手塞进去，但对方的身体太紧，只进到手腕就被卡住了。</span>
+			<br><span class="blue">你试着把<<print _caeHandCN>>整只手塞进对方肛门，但肛门太紧，只进到手腕就被卡住了。</span>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeHandFistKeep">>
 		<<if (_caeSide is "left" and $caeLeftFist isnot _caeT) or (_caeSide is "right" and $caeRightFist isnot _caeT)>>
-			<br><span class="blue">你的拳头已经不在对方体内了。</span>
+			<br><span class="blue">你的<<print _caeHandCN>>拳头已经不在对方的肛门里了。</span>
 		<<else>>
 			<<handskilluse>>
 			<<if combatSkillCheck("hand", _caeT)>>
@@ -426,15 +437,14 @@
 				<<set $enemyarousal += (100 + random(0, 50))>>
 				<<arousal 60>>
 				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
-				<br><span class="lblue">你的拳头在<<hisselect _caeT>>的肛门里缓缓转动，指节一下下碾过内壁。</span>
+				<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的肛门里缓缓转动，指节一下下碾过内壁。</span>
 			<<else>>
 				<<if _caeSide is "left">><<unset $caeLeftFist>><<else>><<unset $caeRightFist>><</if>>
 				<<set $enemyanger += 8>>
-				<br><span class="blue">对方猛地一缩，把你的拳头挤了出来。</span>
+				<br><span class="blue">对方猛地一缩，把你的<<print _caeHandCN>>拳头挤出肛门，滑了出来。</span>
 			<</if>>
 		<</if>>
 	<</if>>
-
 	/* ---- 脱衣：参考原版 Undress（chest / penis / vagina 为 "clothed" 时才可脱） ---- */
 	<<if _caeAct is "caeUndressUpper">>
 		<<if _caeNPC.chest isnot "clothed">>
@@ -565,20 +575,20 @@
 				<<if _caeCons>><<set $enemytrust += 2>><<set $enemyanger -= 5>><<else>><<set $enemyanger += 18>><<set $enemytrust -= 8>><</if>>
 				<br><span class="lblue">你抬起脚，把脚趾抵进<<hisselect _caeT>>的肛门，一寸一寸推了进去。</span>
 			<<else>>
-				<br><span class="blue">你想把脚趾顶进<<hisselect _caeT>>的肛门，但入口已经被占着了。</span>
+				<br><span class="blue">你想把脚趾顶进<<hisselect _caeT>>的肛门，但肛门入口已经被别的东西占着了。</span>
 			<</if>>
 		<<else>>
 			<<if _caeCons>>
-				<br><span class="blue">你抬脚去蹭<<hisselect _caeT>>的臀缝，对方红着脸躲开了。</span>
+				<br><span class="blue">你抬脚去蹭<<hisselect _caeT>>的臀缝，想蹭到肛门，对方红着脸躲开了。</span>
 			<<else>>
 				<<set $enemyanger += 14>><<pain 1>>
-				<br><span class="blue">你抬脚去踩<<hisselect _caeT>>的臀缝，被对方扭身避过。</span>
+				<br><span class="blue">你抬脚去踩<<hisselect _caeT>>的臀缝，想踩到肛门，却被对方扭身避过。</span>
 			<</if>>
 		<</if>>
 	<</if>>
 	<<if _caeAct is "caeFeetAnusKeep">>
 		<<if $caeFeetAnus isnot _caeT>>
-			<br><span class="blue">你的脚趾已经不在对方体内了。</span>
+			<br><span class="blue">你的脚趾已经不在对方的肛门里了。</span>
 		<<else>>
 			<<feetskilluse>>
 			<<if combatSkillCheck("feet", _caeT)>>
@@ -590,7 +600,7 @@
 			<<else>>
 				<<unset $caeFeetAnus>>
 				<<set $enemyanger += 5>>
-				<br><span class="blue">对方猛地一缩，把你的脚趾挤了出来。</span>
+				<br><span class="blue">对方猛地一缩，把你的脚趾挤出肛门，滑了出来。</span>
 			<</if>>
 		<</if>>
 	<</if>>

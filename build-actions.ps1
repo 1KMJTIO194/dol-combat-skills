@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'CombatActionsExt'
-$Version   = '0.9.3'
+$Version   = '0.9.4'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -174,14 +174,14 @@ $required = [ordered]@{
     '结算 widget'        = '<<widget "combatActionsExtDo">>'
     '清空 widget'        = '<<widget "combatActionsExtClear">>'
     '手→胸 动作键'       = '<<set _leftaction["揉捏胸部"] to "caeHandChest">>'
-    '手→小穴 插入键'     = '<<set _leftaction["插入小穴"] to "caeHandVag">>'
-    '手→小穴 继续键'     = '<<set _leftaction["继续指奸"] to "caeHandVagKeep">>'
-    '手→小穴 拳交键'     = '<<set _leftaction["拳交"] to "caeHandVagFist">>'
-    '手→小穴 拳交继续键' = '<<set _leftaction["继续拳交"] to "caeHandVagFistKeep">>'
-    '手→肛 插入键'       = '<<set _leftaction["手指插入"] to "caeHandAnus">>'
-    '手→肛 继续键'       = '<<set _leftaction["继续指奸"] to "caeHandAnusKeep">>'
-    '拳交 动作键'        = '<<set _leftaction["拳交"] to "caeHandFist">>'
-    '拳交 继续键'        = '<<set _leftaction["继续拳交"] to "caeHandFistKeep">>'
+    '手→小穴 插入键'     = '<<set _leftaction["手指插入小穴"] to "caeHandVag">>'
+    '手→小穴 继续键'     = '<<set _leftaction["继续指奸（小穴）"] to "caeHandVagKeep">>'
+    '手→小穴 拳交键'     = '<<set _leftaction["拳交（小穴）"] to "caeHandVagFist">>'
+    '手→小穴 拳交继续键' = '<<set _leftaction["继续拳交（小穴）"] to "caeHandVagFistKeep">>'
+    '手→肛 插入键'       = '<<set _leftaction["手指插入肛门"] to "caeHandAnus">>'
+    '手→肛 继续键'       = '<<set _leftaction["继续指奸（肛门）"] to "caeHandAnusKeep">>'
+    '拳交 动作键'        = '<<set _leftaction["拳交（肛门）"] to "caeHandFist">>'
+    '拳交 继续键'        = '<<set _leftaction["继续拳交（肛门）"] to "caeHandFistKeep">>'
     '脚→胸 动作键'       = '<<set _feetaction["脚揉胸部"] to "caeFeetChest">>'
     '脚→胸 继续键'       = '<<set _feetaction["继续揉胸"] to "caeFeetChestKeep">>'
     '脚→肛 插入键'       = '<<set _feetaction["脚趾插入"] to "caeFeetAnus">>'
@@ -205,7 +205,7 @@ $required = [ordered]@{
     '脚踩胸状态'         = '$caeFeetChest'
     '肛门插入状态'       = '$caeLeftAnus'
     '拳交状态'           = '$caeLeftFist'
-    '入口占用判定'       = '已经被占着了'
+    '入口占用判定'       = '已经被别的东西占着了'
     '战斗结束清空'       = '<<unset $caeLeftAnus>><<unset $caeRightAnus>><<unset $caeFeetAnus>>'
     '咬 动作键'          = '<<set _mouthaction["咬"] to "caeMouthBite">>'
     '无效目标保护'      = '_caeAct to "invalid"'
@@ -238,6 +238,13 @@ if (-not (Test-Path -LiteralPath $ColoursPath)) { throw "缺少动作分类脚�
 $coloursText = [System.IO.File]::ReadAllText($ColoursPath, [System.Text.Encoding]::UTF8)
 if (-not $coloursText.Contains('combatActionColours')) { throw 'actionColours.js 里没有 combatActionColours' }
 if (-not $coloursText.Contains('caeMouthBite')) { throw 'actionColours.js 里没有把「咬」归入 def 分类' }
+if (-not $tweeText.Contains('_caeHandCN')) { throw 'twee 缺少 _caeHandCN（手部动作要明确显示左手/右手）' }
+if (-not $tweeText.Contains('_caeStatusList')) { throw 'twee 缺少当前插入状态提示（_caeStatusList）' }
+foreach ($needle in @('$leftaction isnot "caeHandFist"', '$rightaction isnot "caeHandFist"', '$leftaction isnot "caeHandVagFist"', '$rightaction isnot "caeHandVagFist"')) {
+    if (-not $tweeText.Contains($needle)) { throw "twee 的插入状态清理缺少拳交放行条件（$needle）——移除手指状态会让拳交永远失败" }
+}
+if ($tweeText -match '体内') { throw 'twee 里仍有模糊部位的说法「体内」——请写明小穴/肛门' }
+Write-Host '      手部链条自检通过（明确左右手/手指/整只手/拳头/小穴/肛门 + 拳交放行）✓'
 Write-Host '      动作分类脚本自检通过（咬=def 反抗 / 扯衣=brat / 性行为=sub）✓'
 if ($tweeText -match '\$_cae') { throw 'twee 里出现 $_cae 前缀变量（story 变量）——动作结算必须用临时变量 _cae*，否则读 undefined 会 TypeError' }
 if (-not $tweeText.Contains('_caeHasNPC') -or -not $tweeText.Contains('_caeNeedsNPC')) { throw 'combatActionsExtDo 缺少目标 NPC 守卫（_caeHasNPC / _caeNeedsNPC）' }
@@ -341,4 +348,4 @@ Write-Host ("  mod 源目录 : {0}" -f $SrcDir)
 Write-Host ("  安装包     : {0}" -f $ZipPath)
 Write-Host ("  自动加载表 : {0}" -f $ListPath)
 Write-Host ("  替换参数   : {0} 条（左右手注册 / 脚部注册 / 嘴部注册 / 结算挂点 / 结束清空 / 高潮拦截）" -f $patchParams.Count)
-Write-Host  '  动作       : 咬 / 脱掉上衣(原版式) / 脱掉下衣(原版式) → 揉捏胸部 / 插入小穴→继续指奸→拳交→继续拳交 / 手指插入→继续指奸→拳交→继续拳交 / 脚揉胸部→继续揉胸 / 脚趾插入→继续踩弄'
+Write-Host  '  动作       : 咬 / 脱掉上衣 / 脱掉下衣 → 揉捏胸部 / 手指插入小穴→继续指奸（小穴）→拳交（小穴）→继续拳交（小穴） / 手指插入肛门→继续指奸（肛门）→拳交（肛门）→继续拳交（肛门） / 脚揉胸部→继续揉胸 / 脚趾插入→继续踩弄'
