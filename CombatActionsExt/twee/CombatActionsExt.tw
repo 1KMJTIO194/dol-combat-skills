@@ -1,6 +1,6 @@
 :: CombatActionsExt Widgets [widget]
 /* ============================================================================
-   CombatActionsExt v0.9.4 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
+   CombatActionsExt v0.9.5 —— 战斗中性行为扩展（插入 / 脚部 / 原版式脱衣）
    ----------------------------------------------------------------------------
    出现条件：战斗中（$combat is 1）、对方是人类（$enemytype is "man"）、非 stalk 位置，
              且对应部位已暴露：
@@ -342,17 +342,25 @@
 		<<if (_caeSide is "left" and $caeLeftVagFist isnot _caeT) or (_caeSide is "right" and $caeRightVagFist isnot _caeT)>>
 			<br><span class="blue">你的<<print _caeHandCN>>拳头已经不在对方的小穴里了。</span>
 		<<else>>
-			<<handskilluse>>
-			<<if combatSkillCheck("hand", _caeT)>>
-				<<submission 12>>
-				<<set $enemyarousal += (100 + random(0, 50))>>
-				<<arousal 60>>
-				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
-				<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的小穴里缓缓转动，指节一下下碾过内壁。</span>
-			<<else>>
+			/* 对方主动绞紧：愤怒越高、玩家手技越低，越容易被把小穴里的拳头挤出来（v0.9.5） */
+			<<set _caeSqueezeChance to Math.clamp(Math.floor($enemyanger / 6) - Math.floor(currentSkillValue("handskill") / 20) + 10, 5, 75)>>
+			<<if random(1, 100) lte _caeSqueezeChance>>
 				<<if _caeSide is "left">><<unset $caeLeftVagFist>><<else>><<unset $caeRightVagFist>><</if>>
 				<<set $enemyanger += 8>>
-				<br><span class="blue">对方猛地一夹，把你的<<print _caeHandCN>>拳头挤出小穴，滑了出来。</span>
+				<br><span class="blue">对方的小穴猛地一阵绞紧，硬生生把你的<<print _caeHandCN>>整只拳头挤了出来，穴口还在微微收缩。</span>
+			<<else>>
+				<<handskilluse>>
+				<<if combatSkillCheck("hand", _caeT)>>
+					<<submission 12>>
+					<<set $enemyarousal += (100 + random(0, 50))>>
+					<<arousal 60>>
+					<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
+					<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的小穴里缓缓转动，指节一下下碾过内壁。</span>
+				<<else>>
+					<<if _caeSide is "left">><<unset $caeLeftVagFist>><<else>><<unset $caeRightVagFist>><</if>>
+					<<set $enemyanger += 8>>
+					<br><span class="blue">对方猛地一夹，把你的<<print _caeHandCN>>拳头挤出小穴，滑了出来。</span>
+				<</if>>
 			<</if>>
 		<</if>>
 	<</if>>
@@ -431,17 +439,25 @@
 		<<if (_caeSide is "left" and $caeLeftFist isnot _caeT) or (_caeSide is "right" and $caeRightFist isnot _caeT)>>
 			<br><span class="blue">你的<<print _caeHandCN>>拳头已经不在对方的肛门里了。</span>
 		<<else>>
-			<<handskilluse>>
-			<<if combatSkillCheck("hand", _caeT)>>
-				<<submission 12>>
-				<<set $enemyarousal += (100 + random(0, 50))>>
-				<<arousal 60>>
-				<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
-				<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的肛门里缓缓转动，指节一下下碾过内壁。</span>
-			<<else>>
+			/* 对方主动缩紧：愤怒越高、玩家手技越低，越容易被把肛门里的拳头挤出来（v0.9.5） */
+			<<set _caeSqueezeChance to Math.clamp(Math.floor($enemyanger / 6) - Math.floor(currentSkillValue("handskill") / 20) + 10, 5, 75)>>
+			<<if random(1, 100) lte _caeSqueezeChance>>
 				<<if _caeSide is "left">><<unset $caeLeftFist>><<else>><<unset $caeRightFist>><</if>>
 				<<set $enemyanger += 8>>
-				<br><span class="blue">对方猛地一缩，把你的<<print _caeHandCN>>拳头挤出肛门，滑了出来。</span>
+				<br><span class="blue">对方的肠道猛地一阵痉挛，硬生生把你的<<print _caeHandCN>>整只拳头挤了出来，还带出一点湿热的触感。</span>
+			<<else>>
+				<<handskilluse>>
+				<<if combatSkillCheck("hand", _caeT)>>
+					<<submission 12>>
+					<<set $enemyarousal += (100 + random(0, 50))>>
+					<<arousal 60>>
+					<<if _caeCons>><<set $enemytrust += 1>><<else>><<set $enemyanger += 10>><<set $enemytrust -= 5>><</if>>
+					<br><span class="lblue">你的<<print _caeHandCN>>拳头在<<hisselect _caeT>>的肛门里缓缓转动，指节一下下碾过内壁。</span>
+				<<else>>
+					<<if _caeSide is "left">><<unset $caeLeftFist>><<else>><<unset $caeRightFist>><</if>>
+					<<set $enemyanger += 8>>
+					<br><span class="blue">对方猛地一缩，把你的<<print _caeHandCN>>拳头挤出肛门，滑了出来。</span>
+				<</if>>
 			<</if>>
 		<</if>>
 	<</if>>

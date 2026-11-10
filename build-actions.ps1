@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'CombatActionsExt'
-$Version   = '0.9.4'
+$Version   = '0.9.5'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -245,6 +245,9 @@ foreach ($needle in @('$leftaction isnot "caeHandFist"', '$rightaction isnot "ca
 }
 if ($tweeText -match '体内') { throw 'twee 里仍有模糊部位的说法「体内」——请写明小穴/肛门' }
 Write-Host '      手部链条自检通过（明确左右手/手指/整只手/拳头/小穴/肛门 + 拳交放行）✓'
+if (-not $tweeText.Contains('_caeSqueezeChance')) { throw 'twee 缺少拳交被对方挤出的概率判定（_caeSqueezeChance）' }
+if (-not $tweeText.Contains('对方的小穴猛地一阵绞紧') -or -not $tweeText.Contains('对方的肠道猛地一阵痉挛')) { throw 'twee 缺少拳交被对方挤出的明确文案（小穴绞紧 / 肠道痉挛）' }
+Write-Host '      拳交挤出机制自检通过（对方 Anger 越高越容易被挤出）✓'
 Write-Host '      动作分类脚本自检通过（咬=def 反抗 / 扯衣=brat / 性行为=sub）✓'
 if ($tweeText -match '\$_cae') { throw 'twee 里出现 $_cae 前缀变量（story 变量）——动作结算必须用临时变量 _cae*，否则读 undefined 会 TypeError' }
 if (-not $tweeText.Contains('_caeHasNPC') -or -not $tweeText.Contains('_caeNeedsNPC')) { throw 'combatActionsExtDo 缺少目标 NPC 守卫（_caeHasNPC / _caeNeedsNPC）' }
