@@ -210,7 +210,7 @@
 	<<characteristic-box _csCfgDefense>>
 	<<characteristic-box _csCfgAgility>>
 	<br>
-	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.13.4</span></span>
+	<span class="description">技能等级 F- 至 S（共 16 档），每档提升：攻击力 +5、防御力 +5、敏捷 +5。<br>实际效果：每 1 点攻击力 +1% 造成伤害；每 1 点防御力 -1% 受到伤害（上限 -90%）；敏捷直接计入 舞蹈 / 运动 / 游泳 / 足部 的各项判定（含缠斗中的闪避判定）。当前加成：攻击力 +<<print $combatBonus.attack>>、防御力 +<<print $combatBonus.defense>>、敏捷 +<<print $combatBonus.agility>>。<br><span class="description">CombatSkills mod v1.14.0</span></span>
 <</widget>>
 
 <<widget "combatStatAdd">>
@@ -657,4 +657,67 @@
 	<<clotheson>><<endcombat>>
 	<br><br>
 	<<getouticon>><<link [[从地上爬起来|Harvest Street]]>><<pass 10>><<endevent>><</link>>
+<</if>>
+
+:: CombatSkills Ambush
+<<set $outside to 1>>
+<<effects>>
+<<if $NPCList is undefined or $NPCList[0] is undefined or $NPCList[0] is null>>
+	你环顾四周，刚才那个人的身影已经不见了。
+	<br><br>
+	<<if $bus is "harvest">><<link [[离开|Harvest Street]]>><<set $eventskip to 1>><</link>><<else>><<link [[离开|High Street]]>><<set $eventskip to 1>><</link>><<destinationeventend>><</if>>
+<<else>>
+	<<set $caeAmbushReady to 0>>
+	/* 用事件里已经生成好的 NPC 直接开战（不重新生成，保持是「遇到的那个人」） */
+	<<set $enemyno to 1>>
+	<<set $enemynomax to 1>>
+	<<set $enemytype to "man">>
+	<<maninit>>
+	<<set $enemyanger += 60>>
+	<<set $enemytrust -= 40>>
+	你趁对方还没反应过来，抢先一步动了手——一记重拳砸在对方身上，对方踉跄着后退。
+	<br><br>
+	/* 先手一击：按战斗技能的攻击力计算一次额外伤害，直接扣对方体力 */
+	<<combatStatSync>>
+	<<set _caeAmbushDamage to Math.max(1, Math.floor($enemyhealthmax * (0.15 + random(0, 10) / 100) * (1 + ($combatBonus.attack / 100))))>>
+	<<set $enemyhealth to Math.max(1, $enemyhealth - _caeAmbushDamage)>>
+	<span class="lblue">先手攻击：造成 <<print _caeAmbushDamage>> 点伤害（对方体力 <<print $enemyhealth>> / <<print $enemyhealthmax>>）。</span>
+	<br><br>
+	<<link [[继续战斗|CombatSkills Ambush Fight]]>><</link>>
+<</if>>
+
+:: CombatSkills Ambush Fight
+<<effects>>
+<<effectsman>>
+<<man>>
+<<stateman>>
+<br><br>
+<<actionsman>>
+<<if _combatend or ($pain gte 100 and $willpowerpain is 0)>>
+	<span id="next"><<link [[Next|CombatSkills Ambush Finish]]>><</link>></span><<nexttext>>
+<<else>>
+	<span id="next"><<link [[Next|CombatSkills Ambush Fight]]>><</link>></span><<nexttext>>
+<</if>>
+
+:: CombatSkills Ambush Finish
+<<effects>>
+<<if $enemyhealth lte 0>>
+	对方被你这一轮猛攻打倒在地，喘着粗气认了输。
+	<br><br>
+	<<crimeUp 30 "assault">><<crime "assault">>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<if $bus is "harvest">><<link [[离开|Harvest Street]]>><<endevent>><<set $eventskip to 1>><</link>><<elseif $bus is "high">><<link [[离开|High Street]]>><<endevent>><<set $eventskip to 1>><</link>><<else>><<destinationeventend>><</if>>
+<<elseif $enemyarousal gte $enemyarousalmax>>
+	对方在缠斗中先撑不住了，战斗到此为止。
+	<br><br>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<if $bus is "harvest">><<link [[离开|Harvest Street]]>><<endevent>><<set $eventskip to 1>><</link>><<elseif $bus is "high">><<link [[离开|High Street]]>><<endevent>><<set $eventskip to 1>><</link>><<else>><<destinationeventend>><</if>>
+<<else>>
+	你被对方打退，捂着伤处退开，对方骂骂咧咧地走了。
+	<br><br>
+	<<clotheson>><<endcombat>>
+	<br><br>
+	<<if $bus is "harvest">><<link [[离开|Harvest Street]]>><<endevent>><<set $eventskip to 1>><</link>><<elseif $bus is "high">><<link [[离开|High Street]]>><<endevent>><<set $eventskip to 1>><</link>><<else>><<destinationeventend>><</if>>
 <</if>>

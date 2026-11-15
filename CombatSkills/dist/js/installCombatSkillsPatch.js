@@ -5,7 +5,7 @@
  * 版本号会在控制台打印，方便确认浏览器实际加载的是哪一版（排错用）。
  * ==========================================================================*/
 (function () {
-	var CS_VERSION = "1.13.4";
+	var CS_VERSION = "1.14.0";
 	try {
 		var MacroRef = (typeof Macro !== "undefined" && Macro) || (typeof window !== "undefined" && window.Macro) || null;
 		if (!MacroRef) {
