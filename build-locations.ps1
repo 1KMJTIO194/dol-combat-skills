@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.7.4'
+$Version   = '1.8.0'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -99,6 +99,62 @@ $patchSpecs = @(
         replace = '<<case "Inn Wardrobe">><<link [[关上衣柜|Inn Room]]>><<cleanupOnWardrobeExit>><</link>><<case "Flats Own Wardrobe">><<link [[关上衣柜|Flats Own Room]]>><<cleanupOnWardrobeExit>><</link>><<case "Prison Wardrobe">>'
         check   = '<<case "Inn Wardrobe">>'
         checkAll = @('<<case "Flats Own Wardrobe">>', '[[关上衣柜|Inn Room]]', '[[关上衣柜|Flats Own Room]]')
+    },
+    [ordered]@{
+        name    = '丰收街 → 乡间快速旅行入口'
+        passage = 'Harvest Street'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 1 → 乡间快速旅行入口'
+        passage = 'Farm Road 1'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 2 → 乡间快速旅行入口'
+        passage = 'Farm Road 2'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 3 → 乡间快速旅行入口'
+        passage = 'Farm Road 3'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 4 → 乡间快速旅行入口'
+        passage = 'Farm Road 4'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 5 → 乡间快速旅行入口'
+        passage = 'Farm Road 5'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农场道路 6 → 乡间快速旅行入口'
+        passage = 'Farm Road 6'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
     }
 )
 
@@ -131,7 +187,7 @@ $tweeText = [System.IO.File]::ReadAllText($TweePath, [System.Text.Encoding]::UTF
 
 $tweeRegex = '(?m)^(:: +((?:[^:"\/\n\r\[\] ]+ *)+)(?: *\[((?:[^ \]]+ *)* *)\] *|))$'
 $parsed = [regex]::Matches($tweeText, $tweeRegex)
-$expectPassages = @('Inn', 'Inn Stairs', 'Inn Bed', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Inn Wardrobe', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel', 'LocationsExt Widgets')
+$expectPassages = @('Inn', 'Inn Stairs', 'Inn Bed', 'Inn Sleep', 'Inn Shower', 'Inn Room', 'Inn Bathroom', 'Inn Bath', 'Inn Wardrobe', 'Flats Room Sale', 'Flats Own Room', 'Flats Own Room Sleep', 'Flats Own Shower', 'Flats Own Wardrobe', 'Flats Own Read', 'Flats Own Upgrade', 'Forest Fast Travel', 'Farm Fast Travel', 'LocationsExt Widgets')
 if ($parsed.Count -ne $expectPassages.Count) { throw "twee 被解析出 $($parsed.Count) 个段落（应为 $($expectPassages.Count) 个）" }
 $gotNames = @($parsed | ForEach-Object { $_.Groups[2].Value.Trim() })
 foreach ($need in $expectPassages) {
@@ -168,6 +224,12 @@ $required = [ordered]@{
     '旅店楼梯段落'      = ':: Inn Stairs'
     '旅店床铺段落'      = ':: Inn Bed'
     '旅店衣柜段落'      = ':: Inn Wardrobe'
+    '乡间快速旅行段落'  = ':: Farm Fast Travel'
+    '乡间快速旅行-返回小镇' = '[[返回小镇（丰收街）|Harvest Street]]'
+    '乡间快速旅行-道路1' = '[[农场道路 1 号|Farm Road 1]]'
+    '乡间快速旅行-道路6' = '[[农场道路 6 号|Farm Road 6]]'
+    '乡间快速旅行-农庄区' = '[[农庄区（Farmland）|Farmland]]'
+    '乡间快速旅行-步时' = '_perStep'
     '睡衣列表段落'      = ':: LocationsExt Widgets'
     '睡衣列表 widget'   = '<<widget "caeInnSleepOutfits">>'
     '并爬到床上链接'    = '"穿上" + _outfitname + "并爬到床上"|Inn Bed'

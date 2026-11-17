@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName = 'CombatSkills'
-$Version = '1.13.3'
+$Version = '1.14.0'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -184,6 +184,14 @@ $patchSpecs = @(
         mustContain = @('<<combatReversePin>>')
         note        = 'effectsman 开头：每回合维护按住状态并结算选中动作'
     }
+    [ordered]@{
+        name    = 'NPC 遭遇 → 主动开战标记'
+        passage = 'Widgets NPC Generation'
+        find    = '<<widget "generate1">>'
+        insert  = '<<set $caeAmbushReady to 1>>'
+        mode    = 'after'
+        note    = 'generate1 每次生成 NPC 时打标记；JS 在段落结束时决定是否显示「主动开战」'
+    }
 )
 
 $patchParams = @()
@@ -241,7 +249,7 @@ $tweeText = [System.IO.File]::ReadAllText($tweePath, [System.Text.Encoding]::UTF
 $tweeRegex = '(?m)^(:: +((?:[^:"\/\n\r\[\] ]+ *)+)(?: *\[((?:[^ \]]+ *)* *)\] *|))$'
 $tweePassages = [regex]::Matches($tweeText, $tweeRegex)
 $tweeNames = @($tweePassages | ForEach-Object { $_.Groups[2].Value.Trim() })
-$expectPassages = @('CombatSkills Widgets', 'Boxing Club', 'Boxing Club Spar', 'Boxing Club Training', 'Boxing Club Changing Room', 'Boxing Club Shower', 'Pub Brawl', 'Pub Brawl Fight', 'Pub Brawl Finish')
+$expectPassages = @('CombatSkills Widgets', 'Boxing Club', 'Boxing Club Spar', 'Boxing Club Training', 'Boxing Club Changing Room', 'Boxing Club Shower', 'Pub Brawl', 'Pub Brawl Fight', 'Pub Brawl Finish', 'CombatSkills Ambush', 'CombatSkills Ambush Fight', 'CombatSkills Ambush Finish')
 if ($tweePassages.Count -ne $expectPassages.Count) { throw "twee 文件被解析出 $($tweePassages.Count) 个段落（应为 $($expectPassages.Count) 个：$($expectPassages -join ' / ')）" }
 foreach ($exp in $expectPassages) {
     if ($tweeNames -notcontains $exp) { throw "twee 文件缺少段落：$exp" }
@@ -265,6 +273,10 @@ foreach ($tok in @('combatStatAdd', 'combatStatExp', 'combatStatBoxes', 'combatS
     if ($tweeText -notmatch ('<<widget "' + $tok + '"')) { throw "twee 文件里缺少 widget 定义：$tok" }
 }
 Write-Host '      成长接口 / 战利品 widget 齐备 ✓'
+foreach ($need in @(':: CombatSkills Ambush', ':: CombatSkills Ambush Fight', ':: CombatSkills Ambush Finish', '_caeAmbushDamage', '$caeAmbushReady')) {
+    if (-not $tweeText.Contains($need)) { throw "twee 缺少主动开战片段：$need" }
+}
+Write-Host '      主动开战段落自检通过（入口 / 战斗 / 结算 + 先手伤害）✓'
 
 # ---- 战利品逻辑自检：只允许使用游戏里真实存在的接口 ----
 $lootChecks = [ordered]@{
@@ -284,6 +296,8 @@ foreach ($k in $lootChecks.Keys) {
     if (-not $tweeText.Contains($lootChecks[$k])) { throw "战利品逻辑缺少：$k（应为 $($lootChecks[$k])）" }
 }
 Write-Host '      战利品接口自检通过（money / condoms / spray / blackmoney / type 分流 / 汇总面板）✓'
+if ($tweeText -match '<<money\s+\(') { throw 'twee 里出现 <<money (表达式)>> 写法：SugarCube 宏参数按空格切分，会把 "(500" 当成 amount，money() 抛错且被 DefineMacro 静默吞掉（钱不会加）。请先 <<set>> 到临时变量再 <<money _var>>' }
+Write-Host '      money 宏参数写法自检通过（无「空格+括号」写法）✓'
 
 # ---- 拳击俱乐部自检：段落内容、属性成长、时间与洗澡/更衣柜接口 ----
 $clubChecks = [ordered]@{
@@ -324,7 +338,8 @@ $brawlChecks = [ordered]@{
     '斗殴：生成对手'          = '<<generate1>><<person1>>'
     '斗殴：战斗初始化'        = '<<maninit>>'
     '斗殴：结束判定（含被打倒）' = '<<if _combatend or ($pain gte 100 and $willpowerpain is 0)>>'
-    '斗殴：赢 → 彩头（money 接口）' = '<<money (500 + random(0, 10) * 100) "pubBrawl">>'
+    '斗殴：赢 → 彩头（先算临时变量）' = '<<set _brawlPay to 500 + random(0, 10) * 100>>'
+    '斗殴：赢 → 彩头（money 接口）' = '<<money _brawlPay "pubBrawl">>'
     '斗殴：赢 → 不计战利品'   = '<<set $NPCList[0].looted to true>>'
     '斗殴：输 → 被丢出酒吧'   = '<<link [[从地上爬起来|Harvest Street]]>>'
     '斗殴：输 → 压力/创伤/疼痛' = '<<gstress>><<stress 12>><<gtrauma>><<trauma 6>><<gpain>><<pain 10>>'
@@ -420,6 +435,8 @@ if ($nodeExe) {
 $jsText = [System.IO.File]::ReadAllText($jsPatchPath, [System.Text.Encoding]::UTF8)
 if ($jsText -notmatch 'installCombatSkillsPanel') { throw 'CombatSkillsPatch.js 缺少特征面板 JS 注入（installCombatSkillsPanel）' }
 Write-Host '      特征面板 JS 注入自检通过（运行期插到 #prof 之后，不依赖 TweeReplacer 锚点）✓'
+if ($jsText -notmatch 'installAmbushOption') { throw 'CombatSkillsPatch.js 缺少主动开战注入（installAmbushOption）' }
+Write-Host '      主动开战 JS 注入自检通过（NPC 遭遇 → 主动开战按钮）✓'
 $mTiers = [regex]::Match($jsText, 'var TIERS = \[([^\]]+)\]')
 if (-not $mTiers.Success) { throw 'CombatSkillsPatch.js 里找不到 TIERS 档位表' }
 $jsTiers = @(($mTiers.Groups[1].Value -split ',') | ForEach-Object { [int]$_.Trim() })

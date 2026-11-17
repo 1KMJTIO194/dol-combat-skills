@@ -229,6 +229,73 @@
 			return null;
 		}
 	};
+	/* ---- 4) NPC 遭遇事件：注入「主动开战（先手一击）」----
+	 * generate1 被 TweeReplacer 打上 $caeAmbushReady 标记（见 build.ps1 的第 14 条补丁）。
+	 * 每次段落渲染结束时，如果标记存在、不在战斗中、在室外、且刚生成的是普通人类，
+	 * 就在段落末尾追加一个「主动开战」链接；点击后进入 CombatSkills Ambush（先手伤害 + 标准战斗）。
+	 */
+	function installAmbushOption() {
+		function tryInject() {
+			try {
+				var V = (typeof window !== 'undefined' && window.State) ? window.State.variables : null;
+				var doc = window.document;
+				var old = doc.getElementById('combatSkillsAmbushLink');
+				if (old && old.parentNode) { old.parentNode.removeChild(old); }
+				if (!V) { return; }
+				var ready = V.caeAmbushReady;
+				if (ready !== 1) { return; }
+				V.caeAmbushReady = 0;
+				if (V.combat === 1 || V.molestationstart === 1 || V.sexstart === 1 || V.consensual === 1) { return; }
+				if (V.outside !== 1) { return; }
+				var npc = V.NPCList && V.NPCList[0];
+				if (!npc) { return; }
+				if (npc.type !== 'human' && npc.type !== 'man') { return; }
+				if (npc.teen === 1) { return; }
+				if (npc.monster === 'monster') { return; }
+				var $ = window.jQuery || window.$;
+				if (typeof $ !== 'function') { return; }
+				var host = $('#passages .passage').last()[0];
+				if (!host) { return; }
+				var wrap = doc.createElement('div');
+				wrap.id = 'combatSkillsAmbushLink';
+				wrap.style.marginTop = '0.6em';
+				var a = doc.createElement('a');
+				a.className = 'link-internal';
+				a.href = 'javascript:void(0)';
+				a.textContent = '主动开战（先手一击）';
+				a.addEventListener('click', function (ev) {
+					try {
+						ev.preventDefault();
+						ev.stopPropagation();
+						var V2 = window.State.variables;
+						V2.caeAmbushReady = 0;
+						window.SugarCube.Engine.play('CombatSkills Ambush');
+					} catch (e) { console.error('[CombatSkills] 主动开战失败', e); }
+				});
+				wrap.appendChild(a);
+				host.appendChild(wrap);
+			} catch (e) {
+				console.error('[CombatSkills] 主动开战按钮注入失败', e);
+			}
+		}
+		var tries = 0;
+		function hook() {
+			try {
+				var $ = window.jQuery || window.$;
+				if (typeof $ !== 'function') { return false; }
+				$(window.document).off(':passageend.caeAmbush').on(':passageend.caeAmbush', tryInject);
+				return true;
+			} catch (e) {
+				return false;
+			}
+		}
+		if (hook()) { return; }
+		var timer = setInterval(function () {
+			tries++;
+			if (hook() || tries > 60) { clearInterval(timer); }
+		}, 500);
+	}
+	installAmbushOption();
 	/* 供控制台自查 */
 		/* ---- 3) 特征面板：运行期 JS 注入（v1.13.2 起；不再使用 TweeReplacer 界面锚点）
 	 * 特征页面是覆盖层：overlayReplace widget 里用 <<replace #customOverlayContent>><<characteristics>><</replace>>

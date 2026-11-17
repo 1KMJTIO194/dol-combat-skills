@@ -13,7 +13,7 @@
  * ==========================================================================*/
 (function () {
 	var TAG = "[LocationsExt]";
-	var VERSION = "1.7.4";
+	var VERSION = "1.8.0";
 	window.LocationsExt_version = VERSION;
 	console.log(TAG + " v" + VERSION + " 已加载（探针脚本）");
 
@@ -64,6 +64,10 @@
 		c("Flats Room Sale 段落存在（公寓房间）", flats.length > 0);
 		c("Forest Fast Travel 段落存在", forest.length > 0);
 		c("森林快速旅行：含湖泊目的地", forest.indexOf("湖泊") >= 0);
+		c("Farm Fast Travel 段落存在（乡间快速旅行）", passageText("Farm Fast Travel").length > 0);
+		c("丰收街有乡间快速旅行入口", passageText("Harvest Street").indexOf("|Farm Fast Travel]]") >= 0);
+		c("农场道路 1 有乡间快速旅行入口", passageText("Farm Road 1").indexOf("|Farm Fast Travel]]") >= 0);
+		c("乡间快速旅行含农庄区目的地", passageText("Farm Fast Travel").indexOf("|Farmland]]") >= 0);
 
 		try {
 			var names = window.modUtils && window.modUtils.getModListNameNoAlias ? window.modUtils.getModListNameNoAlias() : [];

@@ -76,7 +76,7 @@
 
 ## 旅店床铺 / 衣柜（v1.7.4：衣柜退出改为原版机制）\n\n- 之前版本旅店床直接调用 `<<sleep>>`，但没先设置 `$sleephour`，导致睡眠循环一次都不执行（时间不动、疲劳不减）\n- v1.7.2 起照原版孤儿院床流程重做：\n  - 房间里有三种上床方式（照原版孤儿院床）：\n  - 「爬到床上」→ 直接进被窝（不脱衣）\n  - 「脱光并爬到床上」→ `<<undressSleep "wardrobe">>` 把衣服收进衣柜再上床\n  - 「穿上〇〇并爬到床上」→ 衣柜里**标记为 sleep 的套装**列表（同原版 `listsleepoutfits`），选中后用 `<<wearoutfit>>` 穿上再上床\n- 房间还有「衣柜」→ `Inn Wardrobe`（原版 Wardrobe 界面）\n  - 退出「关上衣柜」走**原版 `<<wardrobeExits>>` widget**（构建脚本给 `Widgets Wardrobe` 打了补丁，加了 `Inn Wardrobe` / `Flats Own Wardrobe` 两个 case）\n  - 这样每次换装后原版 JS 刷新出口时，关闭选项不会再消失（v1.7.4 修复）\n- 上床后 `Inn Bed` 段落：`<<nightmareCheck "Inn Sleep">>` + `<<generateSleepLinks "Inn Sleep">>`（出现「睡 8/7/…/1 小时」「只管去睡」等原版选项）+「爬下床」\n  - 选择时长后进入 `Inn Sleep`：`<<sleep>>` + `<<effects>>` + `<<sleepeffects>>` + `<<wakingEffects $sleepHoursTotal>>`，按原版每小时扣 200+50 疲劳\n  - 醒来有「起床」回房间、或「下楼，退房离开」\n\n（v1.7.1 新增）`n`n如果怀疑游戏加载的不是最新版：`n`n- 旅店前台页面最底部会显示 `<span class="blue">LocationsExt v1.7.1</span>`；看不到或版本号更小 = 加载的是旧副本`n- F12 控制台刷新后应出现 `[LocationsExt] v1.7.1 已加载（探针脚本）``n- 再执行 `LocationsExtProbe()` 会打印检查表（旅店/公寓/森林段落是否为新版、ModLoader 列表里是否有 LocationsExt）`n- 旧副本通常来自：之前用 ModLoader 界面导入过旧 zip（存在浏览器本地存储里，会覆盖文件夹里的新版）`n`n## 安装
 
-1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.7.4.zip`
+1. 游戏内 ModLoader → 添加 zip → 选 `LocationsExt_v1.8.0.zip`
 2. 刷新页面（或由网站在 `modList.json` 里自动加载）
 3. 前置：ModLoader + TweeReplacer
 
@@ -101,3 +101,17 @@ pwsh -File .\build-locations.ps1 -GameDirOverride '<游戏目录>' -OutDir '<游
 
 - 非官方模组，《Degrees of Lewdity》版权归 **Vrelnir** 所有，请支持正版
 - 本 mod 只含自写文本，不含任何游戏资源；免费发布、禁止商用
+
+## 乡间快速旅行（v1.8.0）
+
+丰收街离镇方向的乡间道路（Farm Road 1–6 → Farmland）新增快速旅行，入口在：
+- **丰收街**底部「快速旅行（乡间道路）」
+- **农场道路 1–6** 每段底部同样的链接
+
+规则参考森林快速旅行：
+- 每段乡间路基础耗时 **30 分钟**，运动技能缩短步时：
+  `每段分钟 = max(12, 30 − floor(athletics / 50))`；穿高跟鞋 `max(20, 45 − floor(athletics / 50))`
+- 使用 `$location` / `$bus` 判断当前位置（农场道路 1–6、丰收街、农庄区）
+- 目的地：小镇（丰收街）、农场道路 1–6、农庄区（Farmland）
+- 时间 = 段数 × 每段分钟；同时按原版步行规则每段 +3 疲劳
+- 每个选项后显示「N 段 / M 分钟」；到达段落时 `$phase` 归零，避免原版步行文本重复计入时间

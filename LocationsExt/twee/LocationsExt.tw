@@ -25,7 +25,7 @@
 <</if>>
 <br><br>
 <<link [[离开旅店|High Street]]>><</link>>
-<br><span class="blue small-description">LocationsExt v1.7.4</span>
+<br><span class="blue small-description">LocationsExt v1.8.0</span>
 
 :: Inn Stairs
 <<set $outside to 0>>
@@ -317,6 +317,88 @@
 <</if>>
 <br>
 <<link [[继续在林间探索|Forest]]>><</link>>
+
+:: Farm Fast Travel
+<<set $outside to 1>>
+<<effects>>
+你凭着记忆里的乡间路线图，盘算着怎么走最省时间。
+<<set $caeFarmFT to {}>>
+<<set _ath to currentSkillValue("athletics")>>
+<<set _heels to ($worn.feet.type.includes("heels") and !$possessed)>>
+<<set _perStep to _heels ? Math.max(20, 45 - Math.floor(_ath / 50)) : Math.max(12, 30 - Math.floor(_ath / 50))>>
+<<set _pos to 0>>
+<<if $location is "farmroad3">><<set _pos to 3>>
+<<elseif $bus is "farmroad1">><<set _pos to 1>>
+<<elseif $bus is "farmroad2">><<set _pos to 2>>
+<<elseif $bus is "farmroad4">><<set _pos to 4>>
+<<elseif $bus is "farmroad5">><<set _pos to 5>>
+<<elseif $bus is "farmroad6">><<set _pos to 6>>
+<<elseif $bus is "farm">><<set _pos to 7>>
+<</if>>
+你当前的位置：<<if _pos is 0>>丰收街（小镇）<<elseif _pos is 7>>农庄区（Farmland）<<else>>农场道路 <<print _pos>> 号<</if>>
+<br><span class="blue">每走一段乡间路耗时 <<print _perStep>> 分钟（运动技能 <<print _ath>> 影响步速；穿高跟鞋会更慢）。</span>
+<br><br>
+<span class="gold">乡间道路</span><br>
+<<if _pos isnot 0>>
+	<<set _steps to _pos>><<set _mins to _steps * _perStep>><<set $caeFarmFT.town to {steps: _steps, mins: _mins}>>
+	<<link [[返回小镇（丰收街）|Harvest Street]]>><<pass $caeFarmFT.town.mins>><<tiredness ($caeFarmFT.town.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+	<br>
+<</if>>
+<<if _pos isnot 1>>
+	<<set _steps to Math.abs(1 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r1 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 1 号|Farm Road 1]]>><<pass $caeFarmFT.r1.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r1.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 2>>
+	<<set _steps to Math.abs(2 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r2 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 2 号|Farm Road 2]]>><<pass $caeFarmFT.r2.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r2.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 3>>
+	<<set _steps to Math.abs(3 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r3 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 3 号|Farm Road 3]]>><<pass $caeFarmFT.r3.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r3.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 4>>
+	<<set _steps to Math.abs(4 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r4 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 4 号|Farm Road 4]]>><<pass $caeFarmFT.r4.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r4.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 5>>
+	<<set _steps to Math.abs(5 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r5 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 5 号|Farm Road 5]]>><<pass $caeFarmFT.r5.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r5.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 6>>
+	<<set _steps to Math.abs(6 - _pos)>><<set _mins to _steps * _perStep>><<set $caeFarmFT.r6 to {steps: _steps, mins: _mins}>>
+	<<link [[农场道路 6 号|Farm Road 6]]>><<pass $caeFarmFT.r6.mins>><<set $phase to 0>><<tiredness ($caeFarmFT.r6.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print $caeFarmFT.r6.steps>> 段... <<print _mins>> 分钟）</span><br>
+<</if>>
+<<if _pos isnot 7>>
+	<<set _steps to 7 - _pos>><<set _mins to _steps * _perStep>><<set $caeFarmFT.farm to {steps: _steps, mins: _mins}>>
+	<<link [[农庄区（Farmland）|Farmland]]>><<pass $caeFarmFT.farm.mins>><<tiredness ($caeFarmFT.farm.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
+<br>
+<span class="gold">关闭地图</span><br>
+<<if _pos is 0>>
+	<<roadicon>><<link [[留在丰收街|Harvest Street]]>><</link>><br>
+<<elseif _pos is 1>>
+	<<roadicon>><<link [[留在农场道路 1 号|Farm Road 1]]>><<set $phase to 0>><</link>><br>
+<<elseif _pos is 2>>
+	<<roadicon>><<link [[留在农场道路 2 号|Farm Road 2]]>><<set $phase to 0>><</link>><br>
+<<elseif _pos is 3>>
+	<<roadicon>><<link [[留在农场道路 3 号|Farm Road 3]]>><<set $phase to 0>><</link>><br>
+<<elseif _pos is 4>>
+	<<roadicon>><<link [[留在农场道路 4 号|Farm Road 4]]>><<set $phase to 0>><</link>><br>
+<<elseif _pos is 5>>
+	<<roadicon>><<link [[留在农场道路 5 号|Farm Road 5]]>><<set $phase to 0>><</link>><br>
+<<elseif _pos is 6>>
+	<<roadicon>><<link [[留在农场道路 6 号|Farm Road 6]]>><<set $phase to 0>><</link>><br>
+<<else>>
+	<<roadicon>><<link [[留在农庄区|Farmland]]>><</link>><br>
+<</if>>
 
 :: LocationsExt Widgets [widget]
 /* 旅店睡衣列表：照原版 listsleepoutfits 的默认分支，但上床目标改为 Inn Bed */

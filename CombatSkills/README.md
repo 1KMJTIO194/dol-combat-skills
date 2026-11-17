@@ -334,11 +334,25 @@ SugarCube.State.variables.combatSkills.agility = 800;   // 敏捷 → S 级（+7
 window.CombatSkills_debug();                            // 查看接管状态
 ```
 
+## NPC 遭遇：主动开战（v1.14.0 新增）
+
+在**室外（`$outside is 1`）的非战斗 NPC 遭遇事件**里，事件段落末尾会出现「**主动开战（先手一击）**」按钮。
+
+- **触发条件**：本次事件刚用 `generate1` 生成普通人类 NPC（`$NPCList[0].type` 为 `human`/`man`）、
+  当前不在战斗中、不在性/猥亵场景、对方不是青少年、不是怪物；只在室外事件生效
+- **开战**：直接使用事件里已经生成的那个 NPC（不会替换成别人），先手打出一击：
+  - 伤害 = `$enemyhealthmax × (15% + 0~10%) × (1 + 攻击力加成/100)`，必定命中，至少给对方留 1 点体力
+  - 对方愤怒 +60、信任 −40
+- **之后**：进入标准战斗界面（`CombatSkills Ambush Fight`），可使用所有战斗动作和本 mod 的扩展动作
+- **结算**：击败 / 对方高潮 / 你被打退都会正常结束战斗并返回当前街道；击败按 `assault` 记罪
+- 实现：`generate1` 由 TweeReplacer 打一个一次性标记（`$caeAmbushReady`），
+  `dist/CombatSkillsPatch.js` 在 `:passageend` 时检查并注入按钮（`installAmbushOption`）
+
 ## 实现方式
 
 - 对 `Widgets` / `Widgets Struggle` / `Widgets NPC Damage` / `Widgets End Combat` / `Widgets NPCs` /
-  `Connudatus Street` / `Pub` 做 13 处**代码级插入/替换**
-  （成长 + 攻击力接入 + 战利品掉落 + 拳击俱乐部入口 + 酒吧斗殴入口），全部由 `TweeReplacer` 完成；
+  `Widgets NPC Generation` / `Connudatus Street` / `Pub` 做 14 处**代码级插入/替换**
+  （成长 + 攻击力接入 + 战利品掉落 + 拳击俱乐部入口 + 酒吧斗殴入口 + 主动开战标记），全部由 `TweeReplacer` 完成；
   锚点均为纯代码/标识符，不含英文 UI 文本，因此**不受汉化 mod 的逐字符串替换影响**。
 - **特征面板不走 TweeReplacer**（v1.13.2 起）：特征页是 `#customOverlayContent` 覆盖层，
   由 `dist/CombatSkillsPatch.js` 用 MutationObserver 监听渲染，把「战斗技能」区块插到
@@ -353,8 +367,8 @@ window.CombatSkills_debug();                            // 查看接管状态
 
 **安装（二选一，都不改动任何游戏文件）**
 
-1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.13.2.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
-2. 网站自动加载：把 `CombatSkills_v1.13.2.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
+1. 游戏内：ModLoader 界面 → 添加 zip → 选 `CombatSkills_v1.14.0.zip`（存入浏览器 IndexedDB，和汉化/图包同方式）。
+2. 网站自动加载：把 `CombatSkills_v1.14.0.zip` 与 `modList.json` 放在 `Degrees of Lewdity.html` 同级目录，
    通过 http 访问游戏时 ModLoader 的 RemoteLoader 会自动读取 `modList.json`（`file://` 打开不生效）。
 
 **卸载**：删除 `modList.json`（或其中的条目）/ 在 ModLoader 界面移除本 mod 即可，游戏完全恢复原状
@@ -393,6 +407,33 @@ Set-ExecutionPolicy -Scope Process Bypass -Force   # PS 5.1 需要
 - 战利品：调概率/金额（`combatLootHuman` / `combatLootCreature` / `combatLootItem`），
   或把纯 struggle 生物（lurker / 史莱姆）也纳入掉落（需挂到 `Struggle End`）。
 
+## 已修：酒吧斗殴胜利不加钱（v1.13.4）
+
+**现象**：丰收街酒吧斗殴打赢后，胜利文本与 `$pubBrawlWins+1` 都正常，但钱没增加。
+
+**原因**：原写法是
+
+```twine
+<<money (500 + random(0, 10) * 100) "pubBrawl">>
+```
+
+SugarCube 的宏参数**按空格切分**，`(500 + random(0, 10)` 这种带空格的表达式会被拆成多个参数
+（第一个参数变成字符串 `"(500"`），`money()` 校验参数时抛错；而 DoL 的 `DefineMacro` 内部
+`try/catch` 只 `console.warn("Something went wrong", e)`，**界面上完全看不出报错**，所以表现为「文本正常、钱没加」。
+
+**v1.13.4 起**：先算到临时变量再传：
+
+```twine
+<<set _brawlPay to 500 + random(0, 10) * 100>>
+<<money _brawlPay "pubBrawl">>
+```
+
+构建脚本新增自检：twee 里出现 `<<money (` 写法直接拒绝构建。
+（其它 mod 的 `<<money -2000 "boxingClub">>` / `<<money _pay "boxingClub">>` / 战利品 `<<money _clCash "thievery">>` 都是单 token 参数，未受影响。）
+
+**实测**：headless Chrome 加载真实游戏 + 全部 mod，直接进入 `Pub Brawl Finish` 胜利分支：
+money 10000 → 11500（+£15）、`$pubBrawlWins=1`、胜利文本正常。
+
 ## 已修：赃款（$blackmoney）单位错误导致销赃 ×100（v1.13.3）
 
 **现象**：战斗内提示「£15 零钱（记为赃款）」，但销赃时（丰收街酒吧 Landry 的 `Pub Sell`）拿到 £1500。
@@ -423,7 +464,7 @@ v1.13.2 起：
    因此任何环境都不会再出现 `[TweeReplacer] cannot find findString` 报错，面板也不会消失。
 2. **战利品锚点已改为纯代码** `<<widget "defeatnpc">>`（v1.13.1），不再依赖英文战斗文本。
 3. 正常日志应为 `[CombatSkills] okCount:[13] errorCount:[0]`；如果看到 error，
-   多半是 zip 还是旧版（v1.13.1 及以前是 14 条参数，v1.13.2 起 13 条）。
+   多半是 zip 还是旧版（v1.13.1 及以前 14 条参数，v1.13.2~v1.13.4 是 13 条，v1.14.0 起 14 条）。
 
 排查：控制台执行 `CombatSkills_debug()` 应能看到 `combatSkills` / `combatBonus` 数据；
 打开「特征」页时控制台会打印 `[CombatSkills] 已注入「战斗技能」面板（JS / 特征覆盖层）`。

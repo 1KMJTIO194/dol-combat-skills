@@ -1,6 +1,6 @@
 {
     "name":  "CombatSkills",
-    "version":  "1.13.3",
+    "version":  "1.14.0",
     "styleFileList":  [
                           "CombatSkills.css"
                       ],
@@ -123,6 +123,13 @@
                                                "passage":  "Widgets Effects Man",
                                                "findString":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e",
                                                "replace":  "\u003c\u003cwidget \"effectsman\"\u003e\u003e\n\t\u003c\u003ccombatReversePin\u003e\u003e",
+                                               "all":  false,
+                                               "debug":  true
+                                           },
+                                           {
+                                               "passage":  "Widgets NPC Generation",
+                                               "findString":  "\u003c\u003cwidget \"generate1\"\u003e\u003e",
+                                               "replace":  "\u003c\u003cwidget \"generate1\"\u003e\u003e\u003c\u003cset $caeAmbushReady to 1\u003e\u003e",
                                                "all":  false,
                                                "debug":  true
                                            }
