@@ -25,7 +25,7 @@
 <</if>>
 <br><br>
 <<link [[离开旅店|High Street]]>><</link>>
-<br><span class="blue small-description">LocationsExt v1.8.0</span>
+<br><span class="blue small-description">LocationsExt v1.8.1</span>
 
 :: Inn Stairs
 <<set $outside to 0>>
@@ -334,8 +334,9 @@
 <<elseif $bus is "farmroad5">><<set _pos to 5>>
 <<elseif $bus is "farmroad6">><<set _pos to 6>>
 <<elseif $bus is "farm">><<set _pos to 7>>
+<<elseif $bus is "moor">><<set _pos to 8>>
 <</if>>
-你当前的位置：<<if _pos is 0>>丰收街（小镇）<<elseif _pos is 7>>农庄区（Farmland）<<else>>农场道路 <<print _pos>> 号<</if>>
+你当前的位置：<<if _pos is 0>>丰收街（小镇）<<elseif _pos is 7>>农庄区（Farmland）<<elseif _pos is 8>>荒原（Moor）<<else>>农场道路 <<print _pos>> 号<</if>>
 <br><span class="blue">每走一段乡间路耗时 <<print _perStep>> 分钟（运动技能 <<print _ath>> 影响步速；穿高跟鞋会更慢）。</span>
 <br><br>
 <span class="gold">乡间道路</span><br>
@@ -380,6 +381,11 @@
 	<<link [[农庄区（Farmland）|Farmland]]>><<pass $caeFarmFT.farm.mins>><<tiredness ($caeFarmFT.farm.steps * 3)>><</link>>
 	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
 <</if>>
+<<if _pos isnot 8>>
+	<<set _steps to 8 - _pos>><<set _mins to _steps * _perStep>><<set $caeFarmFT.moor to {steps: _steps, mins: _mins}>>
+	<<link [[荒原（Moor）|Moor]]>><<pass $caeFarmFT.moor.mins>><<set $moor to 0>><<unset $moor_hunt>><<tiredness ($caeFarmFT.moor.steps * 3)>><</link>>
+	<span class="blue">（<<print _steps>> 段 / <<print _mins>> 分钟）</span><br>
+<</if>>
 <br>
 <span class="gold">关闭地图</span><br>
 <<if _pos is 0>>
@@ -396,8 +402,10 @@
 	<<roadicon>><<link [[留在农场道路 5 号|Farm Road 5]]>><<set $phase to 0>><</link>><br>
 <<elseif _pos is 6>>
 	<<roadicon>><<link [[留在农场道路 6 号|Farm Road 6]]>><<set $phase to 0>><</link>><br>
-<<else>>
+<<elseif _pos is 7>>
 	<<roadicon>><<link [[留在农庄区|Farmland]]>><</link>><br>
+<<else>>
+	<<roadicon>><<link [[留在荒原|Moor]]>><</link>><br>
 <</if>>
 
 :: LocationsExt Widgets [widget]

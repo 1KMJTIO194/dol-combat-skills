@@ -12,7 +12,7 @@
 |---|---|---|---|
 | **CombatSkills** | v1.13.2 | 战斗技能面板（攻击/防御/敏捷 F~S）+ 战斗成长、战利品（含扒衣服）、拳击俱乐部、酒吧斗殴、反剪双臂 | [CombatSkills/README.md](CombatSkills/README.md) |
 | **CombatActionsExt** | v0.9.2 | 战斗中性行为扩展（咬 / 脱衣 / 揉捏 / 插入 / 拳交 / 脚部动作 / 敌人高潮选择），NSFW | [CombatActionsExt/README.md](CombatActionsExt/README.md) |
-| **LocationsExt** | v1.8.0 | 旅店（High Street，£40/天、当天自由进出、隔天贝利式拦路；卧室+浴室）、公寓可购买房间（£62000，衣柜/淋浴/书架升级）、森林快速旅行（按距离算步数、运动技能加速、单一快速出林） | [LocationsExt/README.md](LocationsExt/README.md) |
+| **LocationsExt** | v1.8.1 | 旅店（High Street，£40/天、当天自由进出、隔天贝利式拦路；卧室+浴室）、公寓可购买房间（£62000，衣柜/淋浴/书架升级）、森林快速旅行（按距离算步数、运动技能加速、单一快速出林） | [LocationsExt/README.md](LocationsExt/README.md) |
 
 三个模组相互独立（各自有独立 `boot.json`），可以只装其中一个，也可以全部启用。
 
@@ -71,7 +71,7 @@
 |---|---|---|
 | CombatSkills | `CombatSkills_v1.13.2.zip` | 特征面板最底部显示 `CombatSkills mod v1.13.2` |
 | CombatActionsExt | `CombatActionsExt_v0.9.2.zip` | F12 控制台有 `[CombatActionsExt] v0.9.2 已加载` 日志 |
-| LocationsExt | `LocationsExt_v1.8.0.zip` | High Street 的 Alternate routes 里出现「旅店」；Flats 出现「看看待售的房间」 |
+| LocationsExt | `LocationsExt_v1.8.1.zip` | High Street 的 Alternate routes 里出现「旅店」；Flats 出现「看看待售的房间」 |
 
 刷新页面后生效。**卸载**：ModLoader 里移除即可，游戏文件零改动、完全恢复原状。
 
@@ -152,7 +152,7 @@ pwsh -File .\build-locations.ps1 -GameDirOverride '<游戏目录>' -OutDir '<输
 - **旅店（High Street → Alternate routes）**：£40 租当天的房间；当天可自由进出（前台「上楼回房间」），**隔天需重新付钱**；没付当天房钱想上楼会被店员拦住要钱（贝利式），掏不出钱会被赶回前台（+压力）
 - 旅店房间参考孤儿院：卧室（睡下/浴室 0:01/下楼 0:01）+ 浴室（泡澡 0:30 / 冲澡 0:10 / 原版 `personalUpkeep` / 妊娠检测）
 - **公寓可购买房间（Flats）**：£62000 买断；房间内可睡觉、打开衣柜（自定义退出回房间）、花 £300/£200/£150 升级床垫/淋浴间/书架
-- **乡间快速旅行（丰收街 → Farm Road 1–6 / Farmland）**：离镇方向每段 30 分钟，运动技能缩短步时（`max(12, 30 - floor(athletics/50))`，高跟鞋另算）；可快速去任意农场道路、农庄区或返回小镇，每段 +3 疲劳\n- **森林快速旅行（Forest）**：按「5 点深度 = 5 分钟」步数计算用时，运动技能缩短每步耗时（`max(2, 5 - floor(athletics/250))`，高跟鞋另算）；只列森林内目的地（教堂墓地/湖泊/伊甸小屋/狼洞/小溪/秘密小路），森林外只保留一个「快速返回森林之外（Danube Street）」
+- **乡间快速旅行（丰收街 → Farm Road 1–6 / Farmland）**：离镇方向每段 30 分钟，运动技能缩短步时（`max(12, 30 - floor(athletics/50))`，高跟鞋另算）；可快速去任意农场道路、农庄区、**荒原（Moor）** 或返回小镇，每段 +3 疲劳\n- **森林快速旅行（Forest）**：按「5 点深度 = 5 分钟」步数计算用时，运动技能缩短每步耗时（`max(2, 5 - floor(athletics/250))`，高跟鞋另算）；只列森林内目的地（教堂墓地/湖泊/伊甸小屋/狼洞/小溪/秘密小路），森林外只保留一个「快速返回森林之外（Danube Street）」
 
 ## 反馈
 

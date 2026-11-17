@@ -17,7 +17,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $ModName   = 'LocationsExt'
-$Version   = '1.8.0'
+$Version   = '1.8.1'
 $ScriptDir = $PSScriptRoot
 $GameDir   = if ($GameDirOverride) { $GameDirOverride } else { Split-Path -Parent $ScriptDir }
 if (-not $OutDir) { $OutDir = $GameDir }
@@ -155,6 +155,22 @@ $patchSpecs = @(
         replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
         check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
         checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '荒原 → 乡间快速旅行入口'
+        passage = 'Moor'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
+    },
+    [ordered]@{
+        name    = '农庄区 → 乡间快速旅行入口'
+        passage = 'Farmland'
+        find    = '<<set $eventskip to 0>>'
+        replace = '<<br>><<roadicon>><<link [[快速旅行（乡间道路）|Farm Fast Travel]]>><</link>><br><<set $eventskip to 0>>'
+        check   = '[[快速旅行（乡间道路）|Farm Fast Travel]]'
+        checkAll = @('[[快速旅行（乡间道路）|Farm Fast Travel]]')
     }
 )
 
@@ -229,6 +245,8 @@ $required = [ordered]@{
     '乡间快速旅行-道路1' = '[[农场道路 1 号|Farm Road 1]]'
     '乡间快速旅行-道路6' = '[[农场道路 6 号|Farm Road 6]]'
     '乡间快速旅行-农庄区' = '[[农庄区（Farmland）|Farmland]]'
+    '乡间快速旅行-荒原' = '[[荒原（Moor）|Moor]]'
+    '荒原位置识别' = '$bus is "moor"'
     '乡间快速旅行-步时' = '_perStep'
     '睡衣列表段落'      = ':: LocationsExt Widgets'
     '睡衣列表 widget'   = '<<widget "caeInnSleepOutfits">>'
